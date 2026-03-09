@@ -1,0 +1,139 @@
+{
+  "name": "codex-emulator",
+  "displayName": "CodeX Emulator end to end made by Suryanshu Nabheet",
+  "description": "Run Android emulator and iOS simulator easily from CodeX!",
+  "version": "1.8.2",
+  "publisher": "codex",
+  "author": {
+    "name": "Suryanshu Nabheet"
+  },
+  "icon": "images/ic_emulator.png",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Debuggers",
+    "Other"
+  ],
+  "keywords": [
+    "CodeX",
+    "Emulator",
+    "Android",
+    "iOS",
+    "Simulator"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codex-emulator.start",
+        "title": "CodeX Emulator",
+        "icon": "$(device-mobile)"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "command": "codex-emulator.start"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "codex-emulator.start"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "codex-emulator.start",
+          "group": "navigation"
+        }
+      ],
+      "chat/title": [
+        {
+          "command": "codex-emulator.start",
+          "group": "navigation"
+        }
+      ],
+      "chat/input/action": [
+        {
+          "command": "codex-emulator.start",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CodeX Emulator Configuration",
+      "properties": {
+        "emulator.simulatorPath": {
+          "type": "string",
+          "default": "",
+          "description": "The absolute path of your Xcode simulator directory containing the Simulator.app script. Leaving it empty will automatically select the path with xcode-select -p."
+        },
+        "emulator.emulatorPath": {
+          "type": "string",
+          "default": "~/Library/Android/sdk/emulator",
+          "description": "The absolute path of your Android emulator directory containing the emulator script."
+        },
+        "emulator.emulatorPathMac": {
+          "type": "string",
+          "default": "",
+          "description": "The absolute path of the Android emulator directory on your MacBook containing the emulator script."
+        },
+        "emulator.emulatorPathLinux": {
+          "type": "string",
+          "default": "",
+          "description": "The absolute path of the Android emulator directory on your Linux containing the emulator script."
+        },
+        "emulator.emulatorPathWindows": {
+          "type": "string",
+          "default": "",
+          "description": "The absolute path of the Android emulator directory on your Windows containing the emulator script."
+        },
+        "emulator.emulatorPathWSL": {
+          "type": "string",
+          "default": "",
+          "description": "The absolute path of the Android emulator directory when running in WSL. (e.g. /mnt/c/Users/username/AppData/Local/Android/Sdk/emulator)"
+        },
+        "emulator.androidColdBoot": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show an option to cold boot android devices."
+        },
+        "emulator.androidExtraBootArgs": {
+          "type": "string",
+          "default": "",
+          "description": "Add extra boot args to the android emulator."
+        },
+        "emulator.hasEditorTitleIcon": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the emulator icon in the editor bar on the top right."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.27",
+    "@types/vscode": "^1.96.0",
+    "prettier": "^2.3.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {},
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Suryanshu-Nabheet/CodeX.git"
+  },
+  "homepage": "https://github.com/Suryanshu-Nabheet/CodeX",
+  "bugs": {
+    "url": "https://github.com/Suryanshu-Nabheet/CodeX/issues"
+  }
+}

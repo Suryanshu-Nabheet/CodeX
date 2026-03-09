@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=CodeX - URL Handler
+Comment=AI-Powered Code Editor - URL Handler
+GenericName=Code Editor
+Exec=codex --open-url %U
+Icon=codex
+Type=Application
+NoDisplay=true
+StartupNotify=true
+Categories=Utility;TextEditor;Development;IDE;
+MimeType=x-scheme-handler/codex;
+Keywords=codex;code;editor;

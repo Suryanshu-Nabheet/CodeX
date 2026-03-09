@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>@@NAME@@.desktop</id>
+	<metadata_license>@@LICENSE@@</metadata_license>
+	<project_license>@@LICENSE@@</project_license>
+	<name>@@NAME_LONG@@</name>
+	<summary>CodeX - AI-Powered Code Editor</summary>
+	<developer_name>CodeX Team</developer_name>
+	<url type="homepage">https://codex.dev</url>
+	<url type="bugtracker">https://github.com/codex/codex/issues</url>
+	<url type="help">https://codex.dev/docs</url>
+	<description>
+		<p>CodeX is a modern, AI-powered code editor designed for developers who want to boost their productivity. With intelligent code suggestions, advanced syntax highlighting, and seamless integration with AI assistants, CodeX transforms the way you write code.</p>
+		<p>Features:</p>
+		<ul>
+			<li>AI-powered code completion and intelligent suggestions</li>
+			<li>Support for multiple programming languages</li>
+			<li>Integrated terminal and debugger</li>
+			<li>Git integration for version control</li>
+			<li>Customizable themes and extensions</li>
+			<li>Cross-platform support (Linux, macOS, Windows)</li>
+		</ul>
+	</description>
+	<categories>
+		<category>Development</category>
+		<category>IDE</category>
+		<category>TextEditor</category>
+	</categories>
+	<keywords>
+		<keyword>codex</keyword>
+		<keyword>code</keyword>
+		<keyword>editor</keyword>
+		<keyword>ide</keyword>
+		<keyword>development</keyword>
+		<keyword>programming</keyword>
+		<keyword>ai</keyword>
+	</keywords>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://codex.dev/screenshots/editor-main.png</image>
+			<caption>CodeX - AI-Powered Code Editor</caption>
+		</screenshot>
+	</screenshots>
+	<provides>
+		<binary>@@EXEC@@</binary>
+	</provides>
+	<content_rating type="oars-1.1" />
+	<launchable type="desktop-id">@@NAME@@.desktop</launchable>
+</component>

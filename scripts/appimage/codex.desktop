@@ -1,0 +1,27 @@
+[Desktop Entry]
+Name=CodeX
+Comment=AI-Powered Code Editor - The Ultimate Development Environment
+GenericName=Code Editor
+Exec=codex %F
+Icon=codex
+Type=Application
+StartupNotify=true
+StartupWMClass=CodeX
+Categories=TextEditor;Development;IDE;Utility;
+MimeType=application/x-codex-workspace;text/plain;text/x-javascript;text/x-python;text/x-java;text/x-c;text/x-cpp;text/x-typescript;
+Keywords=codex;code;editor;ide;development;programming;ai;
+Actions=new-empty-window;
+
+[Desktop Action new-empty-window]
+Name=New Empty Window
+Name[de]=Neues leeres Fenster
+Name[es]=Nueva ventana vacía
+Name[fr]=Nouvelle fenêtre vide
+Name[it]=Nuova finestra vuota
+Name[ja]=新しい空のウィンドウ
+Name[ko]=새 빈 창
+Name[ru]=Новое пустое окно
+Name[zh_CN]=新建空窗口
+Name[zh_TW]=開新空視窗
+Exec=codex --new-window %F
+Icon=codex
