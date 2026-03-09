@@ -1,83 +1,153 @@
 <p align="center">
-  <img src="public/banner.png" width="100%" alt="CodeX Banner" />
+  <img src="public/banner.png" width="100%" alt="CodeX — AI-Native Engineering Environment" />
 </p>
 
-# CodeX
+<p align="center">
+  <img src="https://img.shields.io/badge/Version-1.0.0--beta-blue?style=for-the-badge" alt="Version 1.0.0-beta" />
+  <img src="https://img.shields.io/badge/Powered%20By-VS%20Code-007ACC?style=for-the-badge&logo=visual-studio-code" alt="Powered by VS Code" />
+  <img src="https://img.shields.io/badge/AI%20Engine-Native%20Orchestration-FF6F61?style=for-the-badge" alt="AI Engine: Native Orchestration" />
+</p>
 
-CodeX is a development environment built on a modified VS Code foundation, engineered for native AI integration. Unlike traditional plugin-based solutions, CodeX embeds autonomous intelligence into the core workbench services, enabling high-performance orchestration and deep contextual awareness across the entire development lifecycle.
+---
+
+# CodeX — AI-Native Engineering Environment
+
+**Developed by [Suryanshu Nabheet](mailto:suryanshunab@gmail.com)**
+
+CodeX is a next-generation development environment built on a custom-hardened VS Code foundation. Rather than layering AI capabilities through a narrow extension API, CodeX re-engineers the workbench core to deliver **Native AI Orchestration** — treating intelligence as a primary platform service, not an afterthought. The result is deep contextual awareness, high-performance inference, and autonomous agentic workflows that operate at the level of the IDE itself.
+
+---
+
+## Design Philosophy
+
+Most AI-assisted editors operate through a thin extension layer with no meaningful access to internal editor state. CodeX takes a fundamentally different approach.
+
+The AI engine has **direct access** to internal workbench services — TextMate grammar resolution, the global search index, SCM state, and task runner pipelines — enabling a level of contextual fidelity that surface-level integrations cannot achieve. All inference operations are dispatched through VS Code's extension host worker thread model, ensuring the editor UI remains fully responsive regardless of LLM operation complexity.
+
+Underpinning every interaction is the **Unified Context Engine**: a project-wide indexer that constructs a high-fidelity semantic representation of the active codebase. This representation is what the model actually reasons over — not a limited buffer of recently opened files.
+
+---
+
+## Core Features
+
+### Autonomous AI Sidebar
+
+A React-powered command interface that resides in the editor's auxiliary bar.
+
+- **Multimodal Input**: Accepts text, images, and direct codebase references within a single interaction.
+- **Agentic Workflow Execution**: Instructs the model to orchestrate complex, multi-file operations autonomously — refactoring across a module, updating all usages of an interface, or restructuring a directory — without requiring step-by-step supervision.
+- **Real-Time Reasoning Visualization**: A purpose-built `ThoughtBlock` component surfaces the model's intermediate reasoning steps as they are produced, giving engineers transparency into the decisions being made on their behalf.
+
+### Inline Code Transformation (Cmd+K)
+
+A precision tool for in-editor code manipulation.
+
+- **Semantic Diff Projection**: CodeX computes structured diffs and renders them as View Zones within the active editor buffer, enabling contextual review without switching panels.
+- **Convention-Aware Generation**: Leverages a 2,000+ line context window around the cursor to ensure generated code conforms to the stylistic and structural conventions already present in the project.
+
+### Model Context Protocol (MCP) — Native Implementation
+
+First-class support for the MCP standard, implemented at the platform layer rather than as an extension shim.
+
+- **Dynamic Tool Discovery**: Automatically detects and registers local tools — filesystem access, terminal execution, web search — without manual configuration.
+- **Secure API Bridging**: Exposes a standardized, schema-validated bridge for safely connecting the AI engine to internal or sensitive APIs.
+
+### Production-Grade SCM Integration
+
+Intelligent version control tooling woven into the standard SCM workflow.
+
+- **CodeX Commit**: Generates conventional, semantically accurate commit messages derived from deep AST-level analysis of staged changes — not surface-level diffs.
+- **Sync Orchestration**: Native push/pull controls with integrated AI-assisted conflict resolution guidance surfaced directly within the merge workflow.
+
+---
+
+## Bundled Extensions
+
+| # | Extension | Location |
+|---|-----------|----------|
+| 1 | CodeX Sync | `extensions/codex-sync` |
+| 2 | CodeX Onboarding | `src/vs/workbench/contrib/onboarding` |
+| 3 | CodeX Error Lens | `extensions/codex-error-lens` |
+| 4 | CodeX Project Tree | `extensions/codex-project-tree` |
+| 5 | CodeX Theme | `extensions/codex-theme` |
+| 6 | CodeX Commit | `extensions/codex-commit` |
+| 7 | CodeX Timeline | `extensions/codex-timeline` |
+| 8 | CodeX Emulator | `extensions/emulator` |
+| 9 | CodeX PDF Viewer | `extensions/codex-pdfviewer` |
+| 10 | CodeX Path Intellisense | `extensions/codex-pathintellisense` |
+
+---
 
 ## Technical Architecture
 
-The system is architected as a set of non-blocking asynchronous services that handle inference, state management, and UI rendering without compromising the responsiveness of the editor's main thread.
-
-### Workbench Contribution Layer (`src/vs/workbench/contrib/codex`)
-This is the primary integration point for CodeX features within the VS Code codebase.
-- **EditCodeService**: Manages the lifecycle of inline code transformations (Cmd+K). It handles the projection of LLM-generated diffs into editor view zones and maintains a dedicated undo/redo stack for AI modifications.
-- **Context Engine (`contextGatheringService.ts`)**: Implements automated workspace indexing. It performs dependency mapping, project-wide symbol analysis, and token-efficient serialization to provide LLMs with high-fidelity workspace state.
-- **Model Context Protocol (MCP)**: Implements native support for the MCP standard. This allows the AI engine to dynamically discover and execute local tools, interact with the filesystem, and bridge external service APIs through a unified schema.
-
-### Core Foundation & Services
-- **Inference Layer**: Direct protocol implementation for major providers (Anthropic, OpenAI, DeepSeek, Google Gemini). It bypasses intermediary relays to ensure zero data retention and minimal latency.
-- **Edge Inference**: Native support for local inference engines including Ollama, vLLM, and LM Studio via standardized OpenAI-compliant endpoints.
-- **Streaming Orchestration**: A custom event-driven handler that processes partial LLM outputs to render real-time, flicker-free diffs directly within the active text buffer.
-
-## Integrated Capabilities
-
-### AI Sidebar
-A persistent, React-powered engineering environment integrated into the workbench auxiliary bar. It facilitates complex, multi-turn agentic workflows, supporting autonomous reasoning and workspace-wide code generation.
-
-### Inline Transformation (Cmd+K)
-Processes logical modifications directly within the active editor. It uses a specialized diffing algorithm to project changes into high-contrast view zones, allowing for granular review and acceptance of generated snippets.
-
-### Predictive Autocomplete
-A background service providing low-latency inline suggestions. It analyzes prefix/suffix metadata and cross-file dependencies to anticipate engineering intent, significantly reducing boilerplate overhead.
-
-### Integrated Diagnostics (Error Lens)
-Visualizes compiler errors and lint warnings at the point of origin. It leverages the internal decoration API to project diagnostic metadata directly onto the source line, improving the technical feedback loop.
-
-### SCM Lifecycle Management
-Advanced tools for streamlined version control integrated into the SCM pane:
-- **Codex Commit**: Analyzes staged diffs to generate precise, structured, and descriptive commit documentation.
-- **Codex Timeline**: A custom TreeView implementation for granular navigation of commit history, stashed changes, and remote repository states.
-- **Codex Sync**: Extends the workbench UI with dedicated, high-priority controls for source control synchronization (Pull/Push).
-
-## Project Structure
-
-- `src/vs/workbench/contrib/codex/browser`: Frontend logic, React components, and workbench contribution points.
-- `src/vs/workbench/contrib/codex/common`: Shared types, inference services, and core business logic.
-- `extensions/codex-*`: Internal extension suite providing specialized UI and SCM enhancements.
-- `scripts/`: Build and launch utilities for the CodeX runtime.
-
-## Setup & Deployment
-
-### Prerequisites
-- **Runtime**: Node.js v20 or v22 (LTS)
-- **Toolchain**: Git 2.x+, Python 3.x
-- **Build Chain**:
-  - macOS: Xcode Command Line Tools
-  - Linux: GCC/G++ build-essential
-  - Windows: Visual Studio Build Tools
-
-### Installation
-```bash
-git clone https://github.com/Suryanshu-Nabheet/CodeX.git
-cd CodeX
-npm install
-npm run compile
+```mermaid
+graph TD
+    A[User Interface] --> B[Workbench Contribution Layer]
+    B --> C[CodeX Core Services]
+    C --> D[Inference Orchestrator]
+    C --> E[Context Engine]
+    D --> F[LLM Providers: Anthropic / OpenAI / Gemini / Local]
+    E --> G[Workspace Indexer]
+    C --> H[MCP Bridge]
+    H --> I[Local Tools / Internal APIs]
 ```
 
-### Execution
-```bash
-# Start background compilation
-npm run watch
+### Module Breakdown
 
-# Launch CodeX
+| Module | Location | Description |
+|--------|----------|-------------|
+| **Frontend** | `src/vs/workbench/contrib/codex/browser` | Sidebar React application, View Zone renderers, and premium UI components. |
+| **Logic** | `src/vs/workbench/contrib/codex/common` | Inference services, state management, and the `EditCodeService`. |
+| **Protocols** | `src/vs/platform/codex` | Core protocol implementations for MCP and direct LLM provider streaming. |
+
+---
+
+## Prerequisites
+
+| Dependency | Required Version |
+|------------|-----------------|
+| Node.js | `v20.x` or `v22.x` (LTS recommended) |
+| Rust | Latest stable (required for native modules) |
+| Python | `3.10` or later (required for build scripts) |
+
+---
+
+## Build and Launch
+
+```bash
+# Clone the repository
+git clone https://github.com/Suryanshu-Nabheet/CodeX.git && cd CodeX
+
+# Install the full dependency tree
+npm install
+
+# Compile the base workbench
+npm run compile
+
+# Start the CodeX runtime
 ./scripts/code.sh
 ```
 
-## Data Sovereignty
-CodeX is designed for technical privacy. All telemetry is disabled. Communications with AI providers are direct, ensuring that source code and sensitive project metadata are never routed through or stored on third-party infrastructure.
+---
 
-## Governance
-Managed by the CodeX Open Source Initiative.
-Technical Lead: suryanshunab@gmail.com
+## Security and Privacy
+
+CodeX is built on a **Zero-Trust AI Architecture**. The following guarantees are enforced by design, not policy:
+
+- **Local-First Indexing**: All vector embeddings and workspace indexes are generated and stored on-device. No codebase data is transmitted to intermediary servers.
+- **Direct Provider Communication**: API requests travel directly from the local machine to the configured LLM provider. No CodeX-operated relay or proxy is involved.
+- **Telemetry Removed**: All default VS Code telemetry pipelines have been excised from the build to ensure absolute data sovereignty.
+
+---
+
+## Contributing
+
+Contributions from the community are welcome. Please review the [Contributing Guide](CONTRIBUTING.md) for the project's code of conduct, branch conventions, and pull request process before opening a submission.
+
+---
+
+## License
+
+CodeX is governed by the **CodeX Open Source Initiative**.
+
+Technical Lead: [Suryanshu Nabheet](mailto:suryanshunab@gmail.com)
