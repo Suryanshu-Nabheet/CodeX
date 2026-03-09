@@ -1,0 +1,103 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/*
+ * ============================================================================
+ * CODEX ELITE AUXILIARY BAR PART - NEW UNIFIED DESIGN SYSTEM
+ * ============================================================================
+ * Custom UI for the Auxiliary Bar (Secondary Sidebar).
+ * Features curved box highlights with smooth transitions.
+ * ============================================================================
+ */
+
+.monaco-workbench.noauxiliarybar .part.auxiliarybar {
+	display: none !important;
+	visibility: hidden !important;
+}
+
+.monaco-workbench .part.auxiliarybar > .content .monaco-editor,
+.monaco-workbench .part.auxiliarybar > .content .monaco-editor .margin,
+.monaco-workbench .part.auxiliarybar > .content .monaco-editor .monaco-editor-background {
+	background-color: var(--vscode-sideBar-background);
+}
+
+.monaco-workbench .part.auxiliarybar .title-actions .actions-container {
+	justify-content: flex-end;
+}
+
+.monaco-workbench .part.auxiliarybar .title-actions .action-item {
+	margin-right: 4px;
+}
+
+.monaco-workbench .part.auxiliarybar > .title {
+	background-color: var(--vscode-sideBarTitle-background);
+}
+
+.monaco-workbench .part.auxiliarybar > .title > .title-label {
+	flex: 1;
+}
+
+.monaco-workbench .part.auxiliarybar > .title > .title-label h2 {
+	text-transform: uppercase;
+}
+
+.monaco-workbench .part.auxiliarybar > .title > .composite-bar-container {
+	flex: 1;
+}
+
+/* Focus outline suppression */
+.monaco-workbench .part.auxiliarybar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus,
+.monaco-workbench .part.auxiliarybar > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus {
+	outline: 0 !important;
+}
+
+/* Title actions layout */
+.monaco-workbench .auxiliarybar.part.pane-composite-part > .composite.title > .title-actions {
+	flex: inherit;
+}
+
+.monaco-workbench .auxiliarybar.pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item {
+	max-width: 150px;
+}
+
+/* ============================================================================
+ * CODEX PREMIUM HEADER - AI MODULE SWITCHER
+ * ============================================================================ */
+.monaco-workbench .part.auxiliarybar > .header.has-composite-bar {
+	height: 35px !important;
+	display: flex;
+	align-items: center;
+	padding: 0 8px;
+	border-bottom: 1px solid var(--vscode-sideBarActivityBarTop-border, transparent);
+	background-color: var(--vscode-sideBar-background);
+}
+
+.monaco-workbench .part.auxiliarybar > .header.has-composite-bar > .composite-bar-container {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+	height: 100%;
+}
+
+.monaco-workbench .part.auxiliarybar > .header.has-composite-bar .auxiliary-bar-global-header {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+}
+
+/* Custom spacing for AI module buttons in the header */
+.monaco-workbench .part.auxiliarybar > .header.has-composite-bar .composite-bar .action-item {
+	margin: 0 4px !important;
+}
+
+/* Styling for the Auxiliary Bar Title area to match CodeX aesthetic */
+.monaco-workbench .part.auxiliarybar > .title {
+	border-bottom: 1px solid var(--codex-border-3);
+}
+
+.monaco-workbench .part.auxiliarybar > .title > .title-label h2 {
+	font-weight: 700 !important;
+	opacity: 0.8;
+}

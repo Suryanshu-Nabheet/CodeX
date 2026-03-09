@@ -1,0 +1,513 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/*
+ * ============================================================================
+ * CODEX ELITE PANE COMPOSITE BAR - NEW UNIFIED DESIGN SYSTEM
+ * ============================================================================
+ * Custom UI for Activity Bar in TOP, BOTTOM, and TITLE modes.
+ * Features curved box highlights with smooth transitions.
+ *
+ * Design System:
+ * - Curved box highlights for hover and active states
+ * - Smooth 0.18s transitions
+ * - Premium tactile click feedback
+ * - SINGLE highlight per item (no double highlights)
+ * ============================================================================
+ */
+
+/* ============================================================================
+ * TITLE BAR - ACTIONS ALIGNMENT
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .actions-container {
+	justify-content: flex-end;
+}
+
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item,
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions .monaco-action-bar .action-item {
+	margin-right: 4px;
+}
+
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item .action-label {
+	outline-offset: -2px;
+}
+
+.monaco-workbench .part.panel > .title.has-composite-bar > .title-label,
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-label {
+	display: none;
+}
+
+.monaco-workbench .pane-composite-part.empty > .title.has-composite-bar > .title-label {
+	border-bottom: none !important;
+}
+
+/* ============================================================================
+ * HEADER/FOOTER CONTAINER (TOP/BOTTOM MODE)
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part > .header-or-footer {
+	padding-left: 4px;
+	padding-right: 4px;
+	background-color: var(--vscode-activityBarTop-background);
+}
+
+.monaco-workbench .pane-composite-part:not(.empty) > .header {
+	border-bottom: 1px solid var(--vscode-sideBarActivityBarTop-border);
+}
+
+.monaco-workbench .pane-composite-part:not(.empty) > .footer {
+	border-top: 1px solid var(--vscode-sideBarActivityBarTop-border);
+}
+
+/* ============================================================================
+ * COMPOSITE BAR CONTAINER
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container {
+	display: flex;
+}
+
+.monaco-workbench .pane-composite-part > .header-or-footer .composite-bar-container {
+	flex: 1 1 auto;
+	/* Allow both growing and shrinking */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin: 0 auto;
+	max-width: 200px;
+	/* Refined width for 4 items + toggler */
+	gap: 2px;
+	/* Subtle spacing between items */
+}
+
+/* ============================================================================
+ * ACTION BAR LAYOUT
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-label.codicon-more,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-label.codicon-more {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 0px;
+	margin-right: 0px;
+	color: inherit !important;
+}
+
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar {
+	line-height: 35px;
+}
+
+/* ============================================================================
+ * ACTION ITEM BASE - SIDEBAR & AUXILIARY BAR
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item {
+	text-transform: uppercase;
+	padding: 2px 10px;
+	font-size: 11px;
+	font-weight: normal;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	margin: 0;
+}
+
+/* ============================================================================
+ * ACTION ITEM BASE - PANEL (SPECIFIC SIZING)
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .actions-container .action-item,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .actions-container .action-item .action-label {
+	text-transform: none;
+	padding: 2px 10px;
+	font-size: 12px;
+	font-weight: normal;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	margin: 0;
+}
+
+/* Icon items */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon {
+	height: 32px;
+	padding: 0 4px;
+	/* Back to tight, premium spacing */
+	margin: 0 2px;
+	/* Subtle gap */
+}
+
+/* Icon size */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .action-label:not(.codicon),
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .action-label:not(.codicon) {
+	width: 16px;
+	height: 16px;
+}
+
+/* ============================================================================
+ * ACTION LABEL STYLING - PREMIUM VIBRANT ICONS
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .actions-container .action-item .action-label,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
+	margin-right: 0;
+	padding: 2px 4px;
+	border-radius: 6px;
+	transition: opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+		background-color 0.18s ease;
+	opacity: 0.75;
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Extension icons - ensure vibrant visibility with proper sizing */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label:not(.codicon),
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label:not(.codicon) {
+	background-size: 16px !important;
+	background-position: center center !important;
+	background-repeat: no-repeat !important;
+}
+
+/* ============================================================================
+ * HOVER/ACTIVE/FOCUS STATES - FULL OPACITY FOR ALL ICONS
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .action-label,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .action-label {
+	opacity: 1 !important;
+	/* Remove default background from label, use ::after box instead */
+	background-color: transparent !important;
+}
+
+/* Extension icons - must have background-color to color the mask */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label.uri-icon,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label.uri-icon,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .action-label.uri-icon,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label.uri-icon,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label.uri-icon,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label.uri-icon,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label.uri-icon,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .action-label.uri-icon,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .action-label.uri-icon {
+	background-color: var(--vscode-activityBar-foreground) !important;
+}
+
+/* ============================================================================
+ * ICON ITEM POSITIONING - BASE FOR HIGHLIGHT PSEUDO-ELEMENTS
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon {
+	position: relative;
+}
+
+/* ============================================================================
+ * ELITE HOVER BACKGROUND - 28x28 CURVED BOX HIGHLIGHT
+ * Consistent sizing with active state - uses ::after to avoid drag & drop conflicts
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container:not(.dragged-over) > .composite-bar > .monaco-action-bar .action-item.icon:not(.checked):hover::after,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container:not(.dragged-over) > .composite-bar > .monaco-action-bar .action-item.icon:not(.checked):hover::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container:not(.dragged-over) > .composite-bar > .monaco-action-bar .action-item.icon:not(.checked):hover::after {
+	content: "";
+	display: block;
+	position: absolute;
+	width: 26px;
+	height: 26px;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	border-radius: 6px;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	z-index: 0;
+	pointer-events: none;
+	transition: background-color 0.18s ease, opacity 0.18s ease;
+	opacity: 0.95;
+}
+
+/* ============================================================================
+ * ELITE ACTIVE/CHECKED STATE - 28x28 CURVED BOX HIGHLIGHT
+ * Exact same size as hover for consistency
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon.checked::after,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon:focus::after,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon.checked::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon.checked::after,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon:focus::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon:focus::after {
+	content: "";
+	display: block;
+	position: absolute;
+	width: 26px;
+	height: 26px;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	border-radius: 6px;
+	background-color: var(--vscode-toolbar-activeBackground);
+	z-index: 0;
+	pointer-events: none;
+	transition: background-color 0.18s ease, opacity 0.18s ease;
+	opacity: 1;
+}
+
+/* ============================================================================
+ * PANEL TEXT ITEM HIGHLIGHT (PILL SHAPE)
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container:not(.dragged-over) > .composite-bar > .monaco-action-bar .action-item:not(.icon):not(.checked):hover::after,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon).checked::after,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon):focus::after {
+	content: "";
+	display: block;
+	position: absolute;
+	width: auto;
+	height: 24px;
+	top: 0;
+	bottom: 0;
+	left: 3px;
+	right: 3px;
+	margin: auto;
+	border-radius: 4px;
+	z-index: 0;
+	pointer-events: none;
+	transition: background-color 0.18s ease, opacity 0.18s ease;
+}
+
+.monaco-workbench .part.panel > .title > .composite-bar-container:not(.dragged-over) > .composite-bar > .monaco-action-bar .action-item:not(.icon):not(.checked):hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground);
+	opacity: 0.95;
+}
+
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon).checked::after,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon):focus::after {
+	background-color: var(--vscode-toolbar-activeBackground);
+	opacity: 1;
+}
+
+/* ============================================================================
+ * ACTIVE ITEM INDICATOR - HIDE DEFAULT (We use ::after on action-item instead)
+ * ============================================================================ */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .active-item-indicator,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .active-item-indicator,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .active-item-indicator {
+	display: none !important;
+}
+
+/* ============================================================================
+ * DRAG & DROP INDICATORS - BASE RESET
+ * Note: These have display: none by default, only shown during drag operations
+ * The hover/active ::after highlights for .icon items take precedence due to specificity
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item::before {
+	content: '';
+	width: 2px;
+	height: 24px;
+	position: absolute;
+	display: none;
+	opacity: 0;
+	background-color: var(--insert-border-color);
+	transition-property: opacity;
+	transition-duration: 0ms;
+	transition-delay: 100ms;
+}
+
+/* Drag & drop pseudo-element - non-icon items or drag operations */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon)::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon)::after {
+	content: '';
+	width: 2px;
+	height: 24px;
+	position: absolute;
+	display: none;
+	opacity: 0;
+	background-color: var(--insert-border-color);
+	transition-property: opacity;
+	transition-duration: 0ms;
+	transition-delay: 100ms;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container.dragged-over > .composite-bar > .monaco-action-bar .action-item::before,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container.dragged-over > .composite-bar > .monaco-action-bar .action-item::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container.dragged-over > .composite-bar > .monaco-action-bar .action-item::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container.dragged-over > .composite-bar > .monaco-action-bar .action-item::after {
+	display: block;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item::before {
+	left: 1px;
+	margin-left: -2px;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item::after {
+	right: 1px;
+	margin-right: -2px;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:first-of-type::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:first-of-type::before {
+	left: 2px;
+	margin-left: -2px;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:last-of-type::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:last-of-type::after {
+	right: 2px;
+	margin-right: -2px;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.right::before,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.left::after,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.left::before,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.right::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.right::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.left::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.left::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.right::after {
+	transition-delay: 0s;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.right + .action-item::before,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.left::before,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:last-of-type.right::after,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container.dragged-over-head > .composite-bar > .monaco-action-bar .action-item:first-of-type::before,
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container.dragged-over-tail > .composite-bar > .monaco-action-bar .action-item:last-of-type::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.right + .action-item::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.left::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:last-of-type.right::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container.dragged-over-head > .composite-bar > .monaco-action-bar .action-item:first-of-type::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container.dragged-over-tail > .composite-bar > .monaco-action-bar .action-item:last-of-type::after {
+	opacity: 1;
+}
+
+/* ============================================================================
+ * BADGES - HIDDEN AS REQUESTED
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .badge,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .badge {
+	z-index: 2;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge {
+	display: block;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .badge .badge-content,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .badge .badge-content {
+	display: none !important;
+	padding: 3px 5px;
+	border-radius: 10px;
+	font-size: 10px;
+	min-width: 16px;
+	height: 16px;
+	line-height: 10px;
+	font-weight: normal;
+	text-align: center;
+	display: inline-block;
+	box-sizing: border-box;
+	position: relative;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .icon-badge .badge-content {
+	padding: 3px;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	left: 0;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+	z-index: 2;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact .badge-content,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact .badge-content {
+	position: absolute;
+	top: 17px;
+	right: 0px;
+	font-size: 9px;
+	font-weight: 600;
+	min-width: 13px;
+	height: 13px;
+	line-height: 13px;
+	padding: 0 2px;
+	border-radius: 16px;
+	text-align: center;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact.compact-content .badge-content,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact.compact-content .badge-content {
+	font-size: 8px;
+	padding: 0 3px;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact.progress-badge .badge-content::before,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact.progress-badge .badge-content::before {
+	mask-size: 11px;
+	-webkit-mask-size: 11px;
+	top: 3px;
+	left: 1px;
+}
+
+/* ============================================================================
+ * HIGH CONTRAST MODE
+ * ============================================================================ */
+.monaco-workbench.hc-black .pane-composite-part .composite-bar-container .monaco-action-bar .action-item.checked .action-label,
+.monaco-workbench.hc-light .pane-composite-part .composite-bar-container .monaco-action-bar .action-item.checked .action-label {
+	outline: 1px solid var(--vscode-contrastActiveBorder) !important;
+	outline-offset: 2px;
+}
+
+.monaco-workbench.hc-black .pane-composite-part .composite-bar-container .monaco-action-bar .action-item:not(.checked):hover .action-label,
+.monaco-workbench.hc-light .pane-composite-part .composite-bar-container .monaco-action-bar .action-item:not(.checked):hover .action-label {
+	outline: 1px dashed var(--vscode-contrastActiveBorder) !important;
+	outline-offset: 2px;
+}
+
+/* ============================================================================
+ * EMPTY PANE MESSAGE
+ * ============================================================================ */
+.monaco-workbench .pane-composite-part .empty-pane-message-area {
+	display: none;
+	height: 100%;
+	width: 100%;
+}
+
+.monaco-workbench .pane-composite-part.empty .empty-pane-message-area {
+	display: flex;
+	align-items: center;
+	align-content: center;
+	justify-content: center;
+}
+
+.monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message {
+	margin: 12px;
+	text-align: center;
+}
