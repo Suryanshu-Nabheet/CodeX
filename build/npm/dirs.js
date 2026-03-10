@@ -59,6 +59,13 @@ const dirs = [
 	'extensions/open-remote-ssh', // CodeX added this
 	'extensions/open-remote-wsl', // CodeX added this
 	'extensions/emulator', // CodeX added this
+	'extensions/codex-project-tree', // CodeX added this
+	'extensions/codex-error-lens', // CodeX added this
+	'extensions/codex-theme', // CodeX added this
+	'extensions/codex-commit', // CodeX added this
+	'extensions/codex-timeline', // CodeX added this
+	'extensions/codex-pdfviewer', // CodeX added this
+	'extensions/codex-pathintellisense', // CodeX added this
 ];
 
 if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
