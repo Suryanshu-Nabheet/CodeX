@@ -1,0 +1,204 @@
+/*--------------------------------------------------------------------------------------
+ *  Copyright 2026 Suryanshu Nabheet All rights reserved.
+ *  Licensed under the MIT License. See LICENSE.txt for more information.
+ *--------------------------------------------------------------------------------------*/
+
+.monaco-editor .codex-sweepIdxBG {
+	background-color: var(--vscode-codex-sweepIdxBG);
+}
+
+.codex-sweepBG {
+	background-color: var(--vscode-codex-sweepBG);
+}
+
+.codex-highlightBG {
+	background-color: var(--vscode-codex-highlightBG);
+}
+
+.codex-greenBG {
+	background-color: var(--vscode-codex-greenBG);
+}
+
+.codex-redBG {
+	background-color: var(--vscode-codex-redBG);
+}
+
+
+/* Renamed from codex-watermark-button to codex-openfolder-button */
+.codex-openfolder-button {
+    padding: 8px 20px;
+    background-color: #306dce;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    outline: none !important;
+	box-shadow: none !important;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+.codex-openfolder-button:hover {
+    background-color: #2563eb;
+}
+.codex-openfolder-button:active {
+    background-color: #2563eb;
+}
+
+/* Added for Open SSH button with slightly darker color */
+.codex-openssh-button {
+    padding: 8px 20px;
+    background-color: #656565; /* Slightly darker than the #5a5a5a in the TS file */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    outline: none !important;
+	box-shadow: none !important;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.codex-openssh-button:hover {
+    background-color: #474747; /* Darker on hover */
+}
+.codex-openssh-button:active {
+    background-color: #474747;
+}
+
+
+.codex-settings-watermark-button {
+	margin: 8px 0;
+	padding: 8px 20px;
+	background-color: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border: none;
+	border-radius: 4px;
+	outline: none !important;
+	box-shadow: none !important;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.codex-settings-watermark-button:hover {
+	filter: brightness(1.1);
+}
+
+.codex-settings-watermark-button:active {
+	filter: brightness(1.1);
+}
+
+.codex-link {
+	color: #3b82f6;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.codex-link:hover {
+	opacity: 80%;
+}
+
+/* styles for all containers used by codex */
+.codex-scope {
+	--scrollbar-vertical-width: 8px;
+	--scrollbar-horizontal-height: 6px;
+}
+
+/* Target both codex-scope and all its descendants with scrollbars */
+.codex-scope,
+.codex-scope * {
+	scrollbar-width: thin !important;
+	scrollbar-color: var(--codex-bg-1) var(--codex-bg-3) !important;
+	/* For Firefox */
+}
+
+.codex-scope::-webkit-scrollbar,
+.codex-scope *::-webkit-scrollbar {
+	width: var(--scrollbar-vertical-width) !important;
+	height: var(--scrollbar-horizontal-height) !important;
+	background-color: var(--codex-bg-3) !important;
+}
+
+.codex-scope::-webkit-scrollbar-thumb,
+.codex-scope *::-webkit-scrollbar-thumb {
+	background-color: var(--codex-bg-1) !important;
+	border-radius: 4px !important;
+	border: none !important;
+	-webkit-box-shadow: none !important;
+	box-shadow: none !important;
+}
+
+.codex-scope::-webkit-scrollbar-thumb:hover,
+.codex-scope *::-webkit-scrollbar-thumb:hover {
+	background-color: var(--codex-bg-1) !important;
+	filter: brightness(1.1) !important;
+}
+
+.codex-scope::-webkit-scrollbar-thumb:active,
+.codex-scope *::-webkit-scrollbar-thumb:active {
+	background-color: var(--codex-bg-1) !important;
+	filter: brightness(1.2) !important;
+}
+
+.codex-scope::-webkit-scrollbar-track,
+.codex-scope *::-webkit-scrollbar-track {
+	background-color: var(--codex-bg-3) !important;
+	border: none !important;
+}
+
+.codex-scope::-webkit-scrollbar-corner,
+.codex-scope *::-webkit-scrollbar-corner {
+	background-color: var(--codex-bg-3) !important;
+}
+
+/* Add codex-scrollable-element styles to match */
+.codex-scrollable-element {
+	background-color: var(--vscode-editor-background);
+	--scrollbar-vertical-width: 14px;
+	--scrollbar-horizontal-height: 6px;
+	overflow: auto;
+	/* Ensure scrollbars are shown when needed */
+}
+
+.codex-scrollable-element,
+.codex-scrollable-element * {
+	scrollbar-width: thin !important;
+	/* For Firefox */
+	scrollbar-color: var(--codex-bg-1) var(--codex-bg-3) !important;
+	/* For Firefox */
+}
+
+.codex-scrollable-element::-webkit-scrollbar,
+.codex-scrollable-element *::-webkit-scrollbar {
+	width: var(--scrollbar-vertical-width) !important;
+	height: var(--scrollbar-horizontal-height) !important;
+	background-color: var(--codex-bg-3) !important;
+}
+
+.codex-scrollable-element::-webkit-scrollbar-thumb,
+.codex-scrollable-element *::-webkit-scrollbar-thumb {
+	background-color: var(--codex-bg-1) !important;
+	border-radius: 4px !important;
+	border: none !important;
+	-webkit-box-shadow: none !important;
+	box-shadow: none !important;
+}
+
+.codex-scrollable-element::-webkit-scrollbar-thumb:hover,
+.codex-scrollable-element *::-webkit-scrollbar-thumb:hover {
+	background-color: var(--codex-bg-1) !important;
+	filter: brightness(1.1) !important;
+}
+
+.codex-scrollable-element::-webkit-scrollbar-thumb:active,
+.codex-scrollable-element *::-webkit-scrollbar-thumb:active {
+	background-color: var(--codex-bg-1) !important;
+	filter: brightness(1.2) !important;
+}
+
+.codex-scrollable-element::-webkit-scrollbar-track,
+.codex-scrollable-element *::-webkit-scrollbar-track {
+	background-color: var(--codex-bg-3) !important;
+	border: none !important;
+}
+
+.codex-scrollable-element::-webkit-scrollbar-corner,
+.codex-scrollable-element *::-webkit-scrollbar-corner {
+	background-color: var(--codex-bg-3) !important;
+}
