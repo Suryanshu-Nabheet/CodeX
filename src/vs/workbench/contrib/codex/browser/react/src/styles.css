@@ -1,0 +1,110 @@
+/*--------------------------------------------------------------------------------------
+ *  Copyright 2026 Suryanshu Nabheet All rights reserved.
+ *  Licensed under the MIT License. See LICENSE.txt for more information.
+ *--------------------------------------------------------------------------------------*/
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+& {
+	--codex-bg-1: var(--vscode-input-background);
+	--codex-bg-1-alt: var(--vscode-badge-background);
+	--codex-bg-2: var(--vscode-sideBar-background);
+	--codex-bg-2-alt: color-mix(in srgb, var(--vscode-editor-background) 30%, var(--vscode-sideBar-background) 70%);
+	--codex-bg-2-hover: color-mix(in srgb, var(--vscode-editor-foreground) 2%, var(--vscode-sideBar-background) 98%);
+	--codex-bg-3: var(--vscode-editor-background);
+
+	--codex-fg-0: color-mix(in srgb, var(--vscode-tab-activeForeground) 90%, black 10%);
+	--codex-fg-1: var(--vscode-editor-foreground);
+	--codex-fg-2: var(--vscode-input-foreground);
+	--codex-fg-3: var(--vscode-input-placeholderForeground);
+	/* --codex-fg-4: var(--vscode-tab-inactiveForeground); */
+	--codex-fg-4: var(--vscode-list-deemphasizedForeground);
+
+	--codex-warning: var(--vscode-charts-yellow);
+
+	--codex-border-1: var(--vscode-commandCenter-activeBorder);
+	--codex-border-2: var(--vscode-commandCenter-border);
+	--codex-border-3: var(--vscode-commandCenter-inactiveBorder);
+	--codex-border-4: var(--vscode-editorGroup-border);
+
+	--codex-ring-color: #007FD4;
+	--codex-link-color: #007FD4;
+}
+
+.select-child-restyle select {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	padding-right: 24px;
+}
+
+.codex-force-child-placeholder-codex-fg-1 ::placeholder {
+	color: var(--codex-fg-3);
+}
+
+* {
+	outline: none !important;
+}
+
+
+
+.inherit-bg-all-restyle > * {
+	background-color: inherit !important;
+}
+
+
+.bg-editor-style-override {
+	--vscode-sideBar-background: var(--vscode-editor-background);
+}
+
+
+
+/* html {
+	font-size: var(--vscode-font-size);
+}
+
+.btn {
+	@apply cursor-pointer transition-colors;
+
+	&.btn-primary {
+		@apply bg-vscode-button-bg text-vscode-button-fg;
+
+		&:not(:disabled) {
+			@apply hover:bg-vscode-button-hoverBg;
+		}
+	}
+
+	&.btn-sm {
+		@apply px-3 py-1 text-sm;
+	}
+
+	&.btn-secondary {
+		@apply bg-vscode-button-secondary-bg text-vscode-button-secondary-fg;
+
+		&:not(:disabled) {
+			@apply hover:bg-vscode-button-secondary-hoverBg;
+		}
+	}
+
+	&:disabled {
+		@apply opacity-75 cursor-not-allowed;
+	}
+}
+
+.input {
+	@apply bg-vscode-input-bg text-vscode-input-fg border-vscode-input-border focus:outline-vscode-focus-border;
+}
+
+.dropdown {
+	@apply bg-vscode-dropdown-bg text-vscode-dropdown-foreground border-vscode-dropdown-border focus:outline-vscode-focus-border;
+} */
+
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+.no-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
