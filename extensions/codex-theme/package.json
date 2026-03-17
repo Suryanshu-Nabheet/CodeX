@@ -1,0 +1,59 @@
+{
+  "name": "codex-theme",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "categories": [
+    "Themes"
+  ],
+  "version": "1.0.0",
+  "publisher": "codex-ide",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "contributes": {
+    "themes": [
+      {
+        "id": "CodeX Dark",
+        "label": "%codexDarkColorThemeLabel%",
+        "uiTheme": "vs-dark",
+        "path": "./themes/codex_dark.json"
+      },
+      {
+        "id": "CodeX Light",
+        "label": "%codexLightColorThemeLabel%",
+        "uiTheme": "vs",
+        "path": "./themes/codex_light.json"
+      },
+      {
+        "id": "CodeX Obsidian",
+        "label": "%codexObsidianColorThemeLabel%",
+        "uiTheme": "vs-dark",
+        "path": "./themes/codex_obsidian.json"
+      },
+      {
+        "id": "CodeX Midnight",
+        "label": "%codexMidnightColorThemeLabel%",
+        "uiTheme": "vs-dark",
+        "path": "./themes/codex_midnight.json"
+      },
+      {
+        "id": "CodeX High Contrast",
+        "label": "%codexHighContrastColorThemeLabel%",
+        "uiTheme": "hc-black",
+        "path": "./themes/codex_high_contrast.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "CodeX Icon Theme",
+        "label": "%codexIconThemeLabel%",
+        "path": "./file-icons/codex-icon-theme.json"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Suryanshu-Nabheet/codex.git"
+  }
+}

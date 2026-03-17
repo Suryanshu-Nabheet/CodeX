@@ -1,0 +1,10 @@
+{
+	"displayName": "CodeX Themes",
+	"description": "The default CodeX light and dark themes with custom icons.",
+	"codexDarkColorThemeLabel": "CodeX Dark",
+	"codexLightColorThemeLabel": "CodeX Light",
+	"codexMidnightColorThemeLabel": "CodeX Midnight",
+	"codexObsidianColorThemeLabel": "CodeX Obsidian",
+	"codexHighContrastColorThemeLabel": "CodeX High Contrast",
+	"codexIconThemeLabel": "CodeX Icon Theme"
+}
