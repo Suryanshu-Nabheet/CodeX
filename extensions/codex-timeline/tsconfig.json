@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ESNext",
+    "outDir": "out",
+    "lib": [
+      "esnext",
+      "DOM"
+    ],
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "../../src/vscode-dts",
+      "../../node_modules/@types"
+    ]
+  },
+  "include": [
+    "src"
+  ]
+}

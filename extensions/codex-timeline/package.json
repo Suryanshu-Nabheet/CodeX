@@ -1,0 +1,494 @@
+{
+  "name": "codex-timeline",
+  "displayName": "CodeX Timeline",
+  "description": "Adds list of last commits in source control tab",
+  "version": "4.2.4",
+  "publisher": "codex-ide",
+  "repository": "https://github.com/Suryanshu-Nabheet/codex.git",
+  "license": "MIT",
+  "icon": "icon.png",
+  "bugs": {
+    "url": "https://github.com/Suryanshu-Nabheet/codex/issues"
+  },
+  "homepage": "https://github.com/Suryanshu-Nabheet/codex#readme",
+  "engines": {
+    "vscode": "^1.103.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "history",
+    "revert",
+    "diff",
+    "commits",
+    "list",
+    "stash",
+    "stashes",
+    "remotes",
+    "atom",
+    "vscode"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "views": {
+      "scm": [
+        {
+          "id": "codexTimeline.commits",
+          "name": "Commits",
+          "when": "gitOpenRepositoryCount != 0",
+          "visibility": "visible",
+          "icon": "$(git-commit)"
+        },
+        {
+          "id": "codexTimeline.stashes",
+          "name": "Stashes",
+          "when": "gitOpenRepositoryCount != 0",
+          "visibility": "collapsed",
+          "icon": "$(archive)"
+        },
+        {
+          "id": "codexTimeline.worktrees",
+          "name": "Worktrees",
+          "when": "gitOpenRepositoryCount != 0",
+          "visibility": "collapsed",
+          "icon": "$(file-directory)"
+        },
+        {
+          "id": "codexTimeline.remotes",
+          "name": "Remotes",
+          "when": "gitOpenRepositoryCount != 0",
+          "visibility": "collapsed",
+          "icon": "$(cloud)"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "codexTimeline.undoCommit",
+        "title": "Undo last commit",
+        "icon": "$(discard)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.copyCommitHash",
+        "title": "Copy commit hash",
+        "icon": "$(files)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.commits.viewAsTree",
+        "title": "View as tree",
+        "icon": "$(list-tree)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.commits.viewAsList",
+        "title": "View as list",
+        "icon": "$(list-flat)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.diffChangeWithHead",
+        "title": "Diff with current file",
+        "icon": "$(diff)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.reversedDiffChangeWithHead",
+        "title": "Diff with current file",
+        "icon": "$(diff)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.copyFilePath",
+        "title": "Copy file path",
+        "icon": "$(files)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.openCurrentFile",
+        "title": "Open current file",
+        "icon": "$(go-to-file)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.previewFile",
+        "title": "Preview changed file",
+        "icon": "$(file-symlink-file)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.revertCommit",
+        "title": "Revert commit",
+        "icon": "$(discard)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.revertChange",
+        "title": "Revert file",
+        "icon": "$(discard)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.stashStaged",
+        "title": "Stash staged changes",
+        "icon": "$(archive)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.stashIncludeUntracked",
+        "title": "Stash all changes",
+        "icon": "$(package)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.stashPopLatest",
+        "title": "Apply and remove latest",
+        "icon": "$(discard)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.stashApplyLatest",
+        "title": "Apply latest",
+        "icon": "$(tasklist)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.stashPop",
+        "title": "Apply and remove",
+        "icon": "$(discard)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.stashApply",
+        "title": "Apply",
+        "icon": "$(tasklist)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.stashDrop",
+        "title": "Remove",
+        "icon": "$(trash)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.addRemote",
+        "title": "Add",
+        "icon": "$(add)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.removeRemote",
+        "title": "Remove",
+        "icon": "$(trash)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.pullFromRemote",
+        "title": "Pull",
+        "icon": "$(repo-pull)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.lockWorktree",
+        "title": "Lock",
+        "icon": "$(lock)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.unlockWorktree",
+        "title": "Unlock",
+        "icon": "$(unlock)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.moveWorktree",
+        "title": "Move",
+        "icon": "$(move)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.removeWorktree",
+        "title": "Remove",
+        "icon": "$(trash)",
+        "category": "CodeX Timeline"
+      },
+      {
+        "command": "codexTimeline.addWorktree",
+        "title": "Add",
+        "icon": "$(add)",
+        "category": "CodeX Timeline"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "codexTimeline.undoCommit",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.copyCommitHash",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.commits.viewAsTree",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.commits.viewAsList",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.diffChangeWithHead",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.reversedDiffChangeWithHead",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.copyFilePath",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.openCurrentFile",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.previewFile",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.revertCommit",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.revertChange",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.stashStaged",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.stashIncludeUntracked",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.stashPopLatest",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.stashApplyLatest",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.stashPop",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.stashApply",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.stashDrop",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.addRemote",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.removeRemote",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.pullFromRemote",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.lockWorktree",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.unlockWorktree",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.moveWorktree",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.removeWorktree",
+          "when": "false"
+        },
+        {
+          "command": "codexTimeline.addWorktree",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "codexTimeline.undoCommit",
+          "when": "view == codexTimeline.commits",
+          "group": "navigation@1"
+        },
+        {
+          "command": "codexTimeline.commits.viewAsTree",
+          "when": "view == codexTimeline.commits && !codexTimeline.commits.settings.viewAsTree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "codexTimeline.commits.viewAsList",
+          "when": "view == codexTimeline.commits && codexTimeline.commits.settings.viewAsTree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "codexTimeline.stashPopLatest",
+          "when": "view == codexTimeline.stashes",
+          "group": "navigation@4"
+        },
+        {
+          "command": "codexTimeline.stashApplyLatest",
+          "when": "view == codexTimeline.stashes",
+          "group": "navigation@3"
+        },
+        {
+          "command": "codexTimeline.stashStaged",
+          "when": "view == codexTimeline.stashes",
+          "group": "navigation@1"
+        },
+        {
+          "command": "codexTimeline.stashIncludeUntracked",
+          "when": "view == codexTimeline.stashes",
+          "group": "navigation@2"
+        },
+        {
+          "command": "codexTimeline.addRemote",
+          "when": "view == codexTimeline.remotes",
+          "group": "navigation"
+        },
+        {
+          "command": "codexTimeline.addWorktree",
+          "when": "view == codexTimeline.worktrees",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "codexTimeline.revertCommit",
+          "when": "view == codexTimeline.commits && viewItem == commitNode",
+          "group": "inline@1"
+        },
+        {
+          "command": "codexTimeline.copyCommitHash",
+          "when": "view == codexTimeline.commits && viewItem == commitNode",
+          "group": "inline@2"
+        },
+        {
+          "command": "codexTimeline.diffChangeWithHead",
+          "when": "view == codexTimeline.commits && viewItem == changeNode",
+          "group": "inline@1"
+        },
+        {
+          "command": "codexTimeline.reversedDiffChangeWithHead",
+          "when": "view == codexTimeline.stashes && viewItem == changeNode",
+          "group": "inline@1"
+        },
+        {
+          "command": "codexTimeline.openCurrentFile",
+          "when": "view == codexTimeline.commits && viewItem == changeNode",
+          "group": "inline@2"
+        },
+        {
+          "command": "codexTimeline.openCurrentFile",
+          "when": "view == codexTimeline.stashes && viewItem == changeNode",
+          "group": "inline@2"
+        },
+        {
+          "command": "codexTimeline.previewFile",
+          "when": "view == codexTimeline.commits && viewItem == changeNode",
+          "group": "inline@3"
+        },
+        {
+          "command": "codexTimeline.previewFile",
+          "when": "view == codexTimeline.stashes && viewItem == changeNode",
+          "group": "inline@3"
+        },
+        {
+          "command": "codexTimeline.revertChange",
+          "when": "view == codexTimeline.commits && viewItem == changeNode",
+          "group": "inline@4"
+        },
+        {
+          "command": "codexTimeline.copyFilePath",
+          "when": "view == codexTimeline.commits && viewItem == changeNode",
+          "group": "inline@5"
+        },
+        {
+          "command": "codexTimeline.copyFilePath",
+          "when": "view == codexTimeline.stashes && viewItem == changeNode",
+          "group": "inline@5"
+        },
+        {
+          "command": "codexTimeline.stashApply",
+          "when": "view == codexTimeline.stashes && viewItem == commitNode",
+          "group": "inline@1"
+        },
+        {
+          "command": "codexTimeline.stashPop",
+          "when": "view == codexTimeline.stashes && viewItem == commitNode",
+          "group": "inline@2"
+        },
+        {
+          "command": "codexTimeline.stashDrop",
+          "when": "view == codexTimeline.stashes && viewItem == commitNode",
+          "group": "inline@3"
+        },
+        {
+          "command": "codexTimeline.removeRemote",
+          "when": "view == codexTimeline.remotes",
+          "group": "inline@2"
+        },
+        {
+          "command": "codexTimeline.pullFromRemote",
+          "when": "view == codexTimeline.remotes",
+          "group": "inline@1"
+        },
+        {
+          "command": "codexTimeline.moveWorktree",
+          "when": "view == codexTimeline.worktrees && viewItem == worktreeNodeUnlocked",
+          "group": "inline@1"
+        },
+        {
+          "command": "codexTimeline.lockWorktree",
+          "when": "view == codexTimeline.worktrees && viewItem == worktreeNodeUnlocked",
+          "group": "inline@2"
+        },
+        {
+          "command": "codexTimeline.unlockWorktree",
+          "when": "view == codexTimeline.worktrees && viewItem == worktreeNodeLocked",
+          "group": "inline@2"
+        },
+        {
+          "command": "codexTimeline.removeWorktree",
+          "when": "view == codexTimeline.worktrees && viewItem == worktreeNodeUnlocked",
+          "group": "inline@3"
+        }
+      ]
+    }
+  },
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.00.00"
+  },
+  "dependencies": {
+    "date-fns": "^2.29.3"
+  }
+}
