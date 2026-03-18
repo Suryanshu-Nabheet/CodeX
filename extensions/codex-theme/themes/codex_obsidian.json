@@ -50,7 +50,7 @@
     "editor.hoverHighlightBackground": "#292929",
     "editor.inactiveSelectionBackground": "#40404077",
     "editor.lineHighlightBackground": "#292929",
-    "editor.lineHighlightBorder": "#292929",
+    "editor.lineHighlightBorder": "#00000000",
     "editor.rangeHighlightBackground": "#40404052",
     "editor.selectionBackground": "#40404099",
     "editor.selectionHighlightBackground": "#404040CC",
@@ -119,7 +119,7 @@
     "extensionButton.prominentBackground": "#88C0D0",
     "extensionButton.prominentForeground": "#141414",
     "extensionButton.prominentHoverBackground": "#9DD0E0",
-    "focusBorder": "#88C0D0",
+    "focusBorder": "#00000000",
     "foreground": "#CCCCCCdd",
     "gitDecoration.addedResourceForeground": "#A3BE8C",
     "gitDecoration.deletedResourceForeground": "#BF616A",
@@ -250,7 +250,7 @@
     "statusBar.foreground": "#cccccc82",
     "statusBar.background": "#141414",
     "statusBar.border": "#2A2A2A",
-    "statusBar.focusBorder": "#88C0D0",
+    "statusBar.focusBorder": "#00000000",
     "statusBar.debuggingBackground": "#434C5E",
     "statusBar.debuggingForeground": "#D8DEE9",
     "statusBar.debuggingBorder": "#2A2A2A",
@@ -262,7 +262,7 @@
     "statusBarItem.hoverForeground": "#FFFFFF",
     "statusBarItem.prominentBackground": "#2A2A2A",
     "statusBarItem.prominentHoverBackground": "#404040",
-    "statusBarItem.focusBorder": "#88C0D0",
+    "statusBarItem.focusBorder": "#00000000",
     "statusBarItem.remoteBackground": "#88C0D0",
     "statusBarItem.remoteForeground": "#141414",
     "statusBarItem.errorBackground": "#BF616A",
@@ -271,8 +271,8 @@
     "statusBarItem.warningForeground": "#141414",
     "tab.activeBackground": "#1a1a1a",
     "tab.activeBorder": "#1a1a1a",
-    "tab.activeBorderTop": "#88C0D0",
-    "tab.selectedBorderTop": "#88C0D0",
+    "tab.activeBorderTop": "#00000000",
+    "tab.selectedBorderTop": "#00000000",
     "tab.activeForeground": "#FFFFFF",
     "tab.border": "#2A2A2A",
     "tab.hoverBackground": "#2A2A2A99",
@@ -316,8 +316,8 @@
     "textBlockQuote.border": "#88C0D0",
     "textCodeBlock.background": "#1a1a1a",
     "textPreformat.background": "#2A2A2A",
-    "textLink.activeForeground": "#e394dc",
-    "textLink.foreground": "#e394dc",
+    "textLink.activeForeground": "#81A1C1",
+    "textLink.foreground": "#81A1C1",
     "textPreformat.foreground": "#88C0D0",
     "textSeparator.foreground": "#3a3a3a",
     "titleBar.activeBackground": "#141414",
@@ -380,7 +380,7 @@
     },
     "function.builtin": "#82d2ce",
     "class.builtin": "#82d2ce",
-    "class.declaration:python": "#e394dc",
+    "class.declaration:python": "#81A1C1",
     "support.variable.property": "#AA9BF5",
     "class.decorator.builtin:python": "#a8cc7c",
     "function.declaration": {
@@ -389,10 +389,10 @@
     },
     "operatorOverload": "#d1d1d1",
     "memberOperatorOverload": "#d1d1d1",
-    "namespace:cpp": "#e394dc",
+    "namespace:cpp": "#81A1C1",
     "variable.global:cpp": "#a8cc7c",
     "variable.global:c": "#a8cc7c",
-    "type:cpp": "#e394dc",
+    "type:cpp": "#81A1C1",
     "function": "#ebc88d",
     "function:cpp": {
       "foreground": "#efefef",
@@ -411,7 +411,7 @@
       "fontStyle": ""
     },
     "method:cpp": {
-      "foreground": "#e394dc",
+      "foreground": "#81A1C1",
       "fontStyle": ""
     },
     "selfParameter": "#cc7c8a",
@@ -420,13 +420,13 @@
     "variable:javascript": "#d1d1d1",
     "property.declaration:cpp": "#af9cff",
     "property.declaration:c": "#af9cff",
-    "type:c": "#e394dc",
+    "type:c": "#81A1C1",
     "function:c": {
       "foreground": "#efefef",
       "fontStyle": "bold"
     },
     "property:c": "#af9cff",
-    "function:cmake": "#e394dc",
+    "function:cmake": "#81A1C1",
     "builtinConstant.readonly.builtin:python": "#82d2ce"
   },
   "tokenColors": [
@@ -580,7 +580,7 @@
       "name": "punctuation.definition",
       "scope": "punctuation.definition.string.begin,punctuation.definition.string.end",
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -615,7 +615,7 @@
       "name": "inserted.diff",
       "scope": "markup.inserted.diff",
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1084,7 +1084,7 @@
       "name": "Classes",
       "scope": "support.class, entity.name.type.class",
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1189,7 +1189,7 @@
       "name": "css key",
       "scope": "meta.property-name.css",
       "settings": {
-        "foreground": "#e394dc",
+        "foreground": "#81A1C1",
         "fontStyle": ""
       }
     },
@@ -1204,7 +1204,7 @@
       "name": "Strings",
       "scope": "string",
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1259,14 +1259,14 @@
         "entity.name.tag.html"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
       "name": "css property value",
       "scope": "meta.property-value.css",
       "settings": {
-        "foreground": "#e394dc",
+        "foreground": "#81A1C1",
         "fontStyle": ""
       }
     },
@@ -1388,14 +1388,14 @@
       "name": "[VSCODE-CUSTOM] Markdown Inline Raw",
       "scope": "markup.inline.raw.markdown",
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
       "name": "[VSCODE-CUSTOM] Markdown Inline Raw",
       "scope": "markup.inline.raw.string.markdown",
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1527,7 +1527,7 @@
       "name": "Source Json value strings",
       "scope": "source.json meta.structure.dictionary.json > value.json > string.quoted.json,source.json meta.structure.array.json > value.json > string.quoted.json,source.json meta.structure.dictionary.json > value.json > string.quoted.json > punctuation,source.json meta.structure.array.json > value.json > string.quoted.json > punctuation",
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1871,7 +1871,7 @@
         "keyword.other.template.begin"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1880,7 +1880,7 @@
         "keyword.other.template.end"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1889,7 +1889,7 @@
         "keyword.other.substitution.begin"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -1898,7 +1898,7 @@
         "keyword.other.substitution.end"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -2027,7 +2027,7 @@
         "source.ini"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -2081,7 +2081,7 @@
         "meta.definition.class.inherited.classes.groovy"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
@@ -2187,7 +2187,7 @@
         "beginning.punctuation.definition.quote.markdown.xi"
       ],
       "settings": {
-        "foreground": "#e394dc"
+        "foreground": "#81A1C1"
       }
     },
     {
