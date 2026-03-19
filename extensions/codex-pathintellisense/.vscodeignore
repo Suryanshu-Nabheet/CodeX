@@ -1,0 +1,16 @@
+.vscode/**
+.vscode-test/**
+out/test/**
+src/**
+.gitignore
+vsc-extension-quickstart.md
+**/tsconfig.json
+**/.eslintrc.json
+**/*.map
+**/*.ts
+node_modules
+!node_modules/json5
+!node_modules/minimatch
+!node_modules/brace-expansion
+!node_modules/concat-map
+!node_modules/balanced-match

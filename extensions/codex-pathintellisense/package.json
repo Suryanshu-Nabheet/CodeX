@@ -1,0 +1,126 @@
+{
+  "name": "codex-pathintellisense",
+  "displayName": "CodeX Path Intellisense",
+  "description": "Powerful path completion for CodeX.",
+  "version": "1.0.0",
+  "publisher": "Suryanshu-Nabheet",
+  "author": "Suryanshu Nabheet",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Suryanshu-Nabheet/CodeX.git"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "codexPathIntellisense",
+      "properties": {
+        "codexPathIntellisense.extensionOnImport": {
+          "type": "boolean",
+          "default": false,
+          "description": "Adds the file extension to a import statements"
+        },
+        "codexPathIntellisense.mappings": {
+          "type": "object",
+          "default": {},
+          "description": "Mappings for paths.  The values should be interpreted as absolute paths (and can use '${workspaceFolder}')"
+        },
+        "codexPathIntellisense.showHiddenFiles": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show hidden files"
+        },
+        "codexPathIntellisense.autoSlashAfterDirectory": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically adds slash after directory"
+        },
+        "codexPathIntellisense.absolutePathToWorkspace": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sets an absolute path to the current workspace"
+        },
+        "codexPathIntellisense.absolutePathTo": {
+          "type": "string",
+          "description": "If defined, unmapped absolute path imports are based on this location.  Takes priority over 'absolutePathToWorkspace' if both are defined"
+        },
+        "codexPathIntellisense.showOnAbsoluteSlash": {
+          "type": "boolean",
+          "default": true,
+          "description": "Shows suggestions when the import starts with a forward slash ('/')"
+        },
+        "codexPathIntellisense.ignoreTsConfigBaseUrl": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignores tsconfig file for mappings"
+        },
+        "codexPathIntellisense.autoTriggerNextSuggestion": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically triggers next suggestion after previous suggestion"
+        }
+      }
+    }
+  },
+  "main": "./out/extension.js",
+  "browser": "./dist/web/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js",
+    "test-headless": "xvfb-run -a npm test",
+    "prepack": "npm run package-web",
+    "compile-web": "NODE_OPTIONS=--openssl-legacy-provider webpack --config ./build/web-extension.webpack.config.js",
+    "watch-web": "NODE_OPTIONS=--openssl-legacy-provider webpack --watch --config ./build/web-extension.webpack.config.js",
+    "package-web": "NODE_OPTIONS=--openssl-legacy-provider webpack --mode production --devtool hidden-source-map --config ./build/web-extension.webpack.config.js"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/npm": "^7.0.5",
+    "@types/benchmark": "^1.0.31",
+    "@types/glob": "^7.1.1",
+    "@types/mocha": "^7.0.1",
+    "@types/node": "^12.11.7",
+    "@types/vscode": "^1.43.0",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "eslint": "^6.8.0",
+    "glob": "^7.1.6",
+    "mocha": "^7.0.1",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "ts-loader": "^9.2.5",
+    "typescript": "^3.9.10",
+    "vsce": "^1.76.0",
+    "webpack": "^5.51.1",
+    "webpack-cli": "^4.8.0"
+  },
+  "dependencies": {
+    "@types/json5": "0.0.30",
+    "@vscode/test-electron": "^2.4.0",
+    "benchmark": "^2.1.4",
+    "json5": "^2.1.2",
+    "lodash": "^4.17.19",
+    "minimatch": "^3.0.4"
+  }
+}
