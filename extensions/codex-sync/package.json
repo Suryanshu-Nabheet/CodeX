@@ -1,0 +1,89 @@
+{
+	"name": "codex-sync",
+	"publisher": "codex-ide",
+	"version": "0.1.1",
+	"description": "CodeX Sync - Internal Source Control Management",
+	"displayName": "CodeX Sync",
+	"main": "./out/extension.js",
+	"scripts": {
+		"build": "tsc -p .",
+		"watch": "tsc -watch -p .",
+		"clean": "rm -rf out"
+	},
+	"author": "CodeX Team",
+	"license": "MIT",
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"source",
+		"control",
+		"button",
+		"scm",
+		"git",
+		"pull",
+		"list"
+	],
+	"engines": {
+		"vscode": "^1.44.0"
+	},
+	"extensionKind": [
+		"workspace"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"contributes": {
+		"configuration": [
+			{
+				"title": "CodeX Sync",
+				"description": "CodeX Sync buttons to show in source control pane",
+				"properties": {
+					"codex-sync.showGitPull": {
+						"type": "boolean",
+						"default": true,
+						"description": "Git Pull"
+					},
+					"codex-sync.showGitPush": {
+						"type": "boolean",
+						"default": true,
+						"description": "Git Push"
+					}
+				}
+			}
+		],
+		"commands": [
+			{
+				"category": "CodeX Sync",
+				"command": "codex-sync.git.pull",
+				"title": "Pull",
+				"icon": "$(arrow-down)"
+			},
+			{
+				"category": "CodeX Sync",
+				"command": "codex-sync.git.push",
+				"title": "Push",
+				"icon": "$(arrow-up)"
+			}
+		],
+		"menus": {
+			"scm/title": [
+				{
+					"when": "scmProvider == git && config.codex-sync.showGitPull",
+					"command": "codex-sync.git.pull",
+					"group": "navigation@1"
+				},
+				{
+					"when": "scmProvider == git && config.codex-sync.showGitPush",
+					"command": "codex-sync.git.push",
+					"group": "navigation@2"
+				}
+			]
+		}
+	},
+	"devDependencies": {
+		"@types/node": "^14.0.0",
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {}
+}
