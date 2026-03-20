@@ -1,0 +1,113 @@
+{
+  "name": "codex-project-tree",
+  "displayName": "Codex Project Tree",
+  "publisher": "Suryanshu-Nabheet",
+  "description": "A production-grade project tree generator for README.md, built by Suryanshu Nabheet.",
+  "version": "0.0.1",
+  "icon": "images/tree-icon.jpg",
+  "author": "Suryanshu Nabheet",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Suryanshu-Nabheet/CodeX.git"
+  },
+  "keywords": [
+    "README",
+    "tree",
+    "structure",
+    "directory"
+  ],
+  "engines": {
+    "vscode": "^1.54.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization"
+  ],
+  "license": "MIT",
+  "activationEvents": [
+    "onCommand:codex-project-tree.generate"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codex-project-tree.generate",
+        "title": "Codex: Generate Project Tree"
+      }
+    ],
+    "configuration": {
+      "title": "Codex Project Tree Settings",
+      "properties": {
+        "CodexProjectTree.loadIgnore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to respect .gitignore rules when scanning your directory structure."
+        },
+        "CodexProjectTree.theme": {
+          "type": "string",
+          "default": "perfect",
+          "enum": [
+            "normal",
+            "perfect"
+          ],
+          "enumDescriptions": [
+            "Standard branch structure.",
+            "Modern, clean tree layout."
+          ],
+          "description": "Visual theme for the generated tree structure."
+        },
+        "CodexProjectTree.withComment": {
+          "type": "boolean",
+          "default": false,
+          "description": "Append // comments at the end of each tree line for manual descriptions."
+        },
+        "CodexProjectTree.commentDistance": {
+          "type": "number",
+          "default": 5,
+          "description": "The spacing distance between the longest filename and the comment line."
+        },
+        "CodexProjectTree.ignoreFolders": {
+          "type": "array",
+          "description": "Glob patterns or folder names to exclude from the project tree.",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            ".git",
+            ".vscode",
+            "out",
+            "dist",
+            ".DS_Store"
+          ]
+        },
+        "CodexProjectTree.distFileName": {
+          "type": "string",
+          "description": "The target documentation file where the tree will be inserted (appended). Root relative path.",
+          "default": "README.md"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.9",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.54.0",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.2",
+    "eslint": "^9.13.0",
+    "typescript": "^5.6.3"
+  }
+}
