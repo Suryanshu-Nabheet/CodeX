@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    
+    steps:
+      - name: Checkout CodeX
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install Build Dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3
+
+      - name: Install Dependencies
+        run: npm install --no-audit
+
+      - name: Compile CodeX Core
+        run: npm run compile
+
+      - name: Build CodeX Artifacts (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          npm run gulp vscode-darwin-x64-min
+          npm run gulp vscode-darwin-arm64-min
+          # Package as Zips
+          cd ../VSCode-darwin-x64 && zip -r ../CodeX-darwin-x64.zip .
+          cd ../VSCode-darwin-arm64 && zip -r ../CodeX-darwin-arm64.zip .
+
+      - name: Build CodeX Artifacts (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          npm run gulp vscode-linux-x64-min
+          # Package as Tarballs
+          cd ../VSCode-linux-x64 && tar -czf ../CodeX-linux-x64.tar.gz .
+      
+      - name: Build CodeX Artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          npm run gulp vscode-win32-x64-min
+          # Package as Zips
+          cd ../VSCode-win32-x64; Compress-Archive -Path * -DestinationPath ../CodeX-win32-x64.zip
+
+      - name: Create GitHub Release
+        if: success()
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ../CodeX-*.zip
+            ../CodeX-*.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
