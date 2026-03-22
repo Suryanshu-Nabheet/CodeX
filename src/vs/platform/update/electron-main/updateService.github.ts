@@ -15,7 +15,7 @@ import { AbstractUpdateService } from './abstractUpdateService.js';
 import { shell } from 'electron';
 
 /** GitHub releases API endpoint for CodeX binaries. */
-const GITHUB_RELEASES_API = 'https://api.github.com/repos/Suryanshu-Nabheet/codex/releases/latest';
+const GITHUB_RELEASES_API = 'https://api.github.com/repos/Suryanshu-Nabheet/CodeX/releases/latest';
 
 /** GitHub releases page — shown to user when an update is found. */
 const GITHUB_RELEASES_URL = 'https://github.com/Suryanshu-Nabheet/CodeX/releases/latest';

@@ -79,4 +79,21 @@ export class CodexSCMService implements ICodexSCMService {
 	gitLog(path: string): Promise<string> {
 		return git('git log --pretty=format:"%h|%s|%ad" --date=short --no-merges -n 5', path)
 	}
+
+	async gitBranches(path: string): Promise<string[]> {
+		const output = await git('git branch --format="%(refname:short)"', path)
+		return output.split('\n').map(b => b.trim()).filter(b => b.length > 0)
+	}
+
+	async gitRecentCommits(path: string, limit: number = 20): Promise<{ hash: string, message: string }[]> {
+		const output = await git(`git log --pretty=format:"%h|%s" --no-merges -n ${limit}`, path)
+		return output.split('\n').map(line => {
+			const [hash, ...messageParts] = line.split('|');
+			return { hash, message: messageParts.join('|') };
+		}).filter(c => c.hash.length > 0);
+	}
+
+	async gitShow(path: string, hash: string): Promise<string> {
+		return await git(`git show --stat ${hash}`, path);
+	}
 }

@@ -22,6 +22,7 @@ export interface ITerminalToolService {
 	readonly _serviceBrand: undefined;
 
 	listPersistentTerminalIds(): string[];
+	listAllTerminals(): { id: string, name: string }[];
 	runCommand(command: string, opts:
 		| { type: 'persistent', persistentTerminalId: string }
 		| { type: 'temporary', cwd: string | null, terminalId: string }
@@ -105,6 +106,17 @@ export class TerminalToolService extends Disposable implements ITerminalToolServ
 
 	listPersistentTerminalIds() {
 		return Object.keys(this.persistentTerminalInstanceOfId)
+	}
+
+	listAllTerminals() {
+		return this.terminalService.instances.map(t => {
+			// Find if it's a persistent one
+			const persistentId = idOfPersistentTerminalName(t.title);
+			return {
+				id: persistentId || t.instanceId.toString(),
+				name: t.title
+			};
+		});
 	}
 
 	getValidNewTerminalId(): string {
@@ -200,7 +212,7 @@ export class TerminalToolService extends Disposable implements ITerminalToolServ
 
 	focusPersistentTerminal: ITerminalToolService['focusPersistentTerminal'] = async (terminalId) => {
 		if (!terminalId) return
-		const terminal = this.persistentTerminalInstanceOfId[terminalId]
+		const terminal = this.persistentTerminalInstanceOfId[terminalId] ?? this.terminalService.instances.find(t => t.instanceId.toString() === terminalId);
 		if (!terminal) return // should never happen
 		this.terminalService.setActiveInstance(terminal)
 		await this.terminalService.focusActiveInstance()
@@ -210,8 +222,8 @@ export class TerminalToolService extends Disposable implements ITerminalToolServ
 
 
 	readTerminal: ITerminalToolService['readTerminal'] = async (terminalId) => {
-		// Try persistent first, then temporary
-		const terminal = this.getPersistentTerminal(terminalId) ?? this.getTemporaryTerminal(terminalId);
+		// Try persistent first, then temporary, then all instances
+		const terminal = this.getPersistentTerminal(terminalId) ?? this.getTemporaryTerminal(terminalId) ?? this.terminalService.instances.find(t => t.instanceId.toString() === terminalId);
 		if (!terminal) {
 			throw new Error(`Read Terminal: Terminal with ID ${terminalId} does not exist.`);
 		}
@@ -269,7 +281,7 @@ export class TerminalToolService extends Disposable implements ITerminalToolServ
 
 		if (isPersistent) { // BG process
 			const { persistentTerminalId } = params
-			terminal = this.persistentTerminalInstanceOfId[persistentTerminalId];
+			terminal = this.persistentTerminalInstanceOfId[persistentTerminalId] ?? this.terminalService.instances.find(t => t.instanceId.toString() === persistentTerminalId);
 			if (!terminal) throw new Error(`Unexpected internal error: Terminal with ID ${persistentTerminalId} did not exist.`);
 		}
 		else {

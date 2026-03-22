@@ -77,25 +77,90 @@ export class SurroundingsRemover {
 	}
 
 
+	removeThinkingBlocks = () => {
+		const pm = this
+		const thinkingTags = [
+			['<thinking>', '</thinking>'],
+			['<thought>', '</thought>'],
+			['<thought_process>', '</thought_process>'],
+			['<analysis>', '</analysis>'],
+		]
+
+		let changed = true
+		while (changed) {
+			changed = false
+			// skip whitespace/newlines
+			while (pm.i <= pm.j && (pm.originalS[pm.i] === ' ' || pm.originalS[pm.i] === '\n' || pm.originalS[pm.i] === '\r')) {
+				pm.i++
+			}
+
+			for (const [startTag, endTag] of thinkingTags) {
+				if (pm.originalS.substring(pm.i).startsWith(startTag)) {
+					const endIdx = pm.originalS.indexOf(endTag, pm.i)
+					if (endIdx !== -1) {
+						pm.i = endIdx + endTag.length
+						changed = true
+						break
+					} else {
+						// Streaming inside thinking block - skip everything
+						pm.i = pm.originalS.length
+						return
+					}
+				}
+			}
+
+			// Also skip common leading patterns like "Thinking:" or "Analysis:" if they are at the start of a line
+			const remaining = pm.originalS.substring(pm.i).toLowerCase()
+			if (
+				remaining.startsWith('thinking:') || 
+				remaining.startsWith('analysis:') || 
+				remaining.startsWith('here is') || 
+				remaining.startsWith('certainly') || 
+				remaining.startsWith('of course') || 
+				remaining.startsWith('i can help') || 
+				remaining.startsWith('sure') || 
+				remaining.startsWith("here's")
+			) {
+				const newlineIdx = pm.originalS.indexOf('\n', pm.i)
+				if (newlineIdx !== -1) {
+					pm.i = newlineIdx + 1
+					changed = true
+				} else {
+					pm.i = pm.originalS.length
+					return
+				}
+			}
+		}
+	}
+
+
 	removeCodeBlock = () => {
 		// Match either:
 		// 1. ```language\n<code>\n```\n?
 		// 2. ```<code>\n```\n?
 
 		const pm = this
+
+		// Skip everything before the first ``` if it exists
+		const firstBackticks = pm.originalS.indexOf('```', pm.i)
+		if (firstBackticks !== -1) {
+			pm.i = firstBackticks
+		}
+
 		const foundCodeBlock = pm.removePrefix('```')
 		if (!foundCodeBlock) return false
 
-		pm.removeFromStartUntilFullMatch('\n', true) // language
+		pm.removeFromStartUntilFullMatch('\n', true) // skip language identifier line
 
-		const j = pm.j
+		const jBefore = pm.j
 		let foundCodeBlockEnd = pm.removeSuffix('```')
 
-		if (pm.j === j) foundCodeBlockEnd = pm.removeSuffix('```\n') // if no change, try again with \n after ```
+		if (pm.j === jBefore) foundCodeBlockEnd = pm.removeSuffix('```\n') // if no change, try again with \n after ```
 
-		if (!foundCodeBlockEnd) return false
+		if (foundCodeBlockEnd) {
+			pm.removeSuffix('\n'); // remove the newline before ```
+		}	// if NOT foundCodeBlockEnd, we are still streaming the code block, which is fine, pm.i is already past ```
 
-		pm.removeSuffix('\n') // remove the newline before ```
 		return true
 	}
 
@@ -105,7 +170,7 @@ export class SurroundingsRemover {
 		//                  ^   i    j    len
 		//                  |
 		//            recentyAddedIdx
-		const recentlyAddedIdx = this.originalS.length - recentlyAddedTextLen
+		const recentlyAddedIdx = Math.max(0, this.originalS.length - recentlyAddedTextLen)
 		const actualDelta = this.originalS.substring(Math.max(this.i, recentlyAddedIdx), this.j + 1)
 		const ignoredSuffix = this.originalS.substring(Math.max(this.j + 1, recentlyAddedIdx), Infinity)
 		return [actualDelta, ignoredSuffix] as const
@@ -121,6 +186,7 @@ export const extractCodeFromRegular = ({ text, recentlyAddedTextLen }: { text: s
 
 	const pm = new SurroundingsRemover(text)
 
+	pm.removeThinkingBlocks()
 	pm.removeCodeBlock()
 
 	const s = pm.value()
@@ -148,6 +214,7 @@ export const extractCodeFromFIM = ({ text, recentlyAddedTextLen, midTag, }: { te
 
 	const pm = new SurroundingsRemover(text)
 
+	pm.removeThinkingBlocks()
 	pm.removeCodeBlock()
 
 	const foundMid = pm.removePrefix(`<${midTag}>`)
@@ -162,6 +229,12 @@ export const extractCodeFromFIM = ({ text, recentlyAddedTextLen, midTag, }: { te
 	return [s, delta, ignoredSuffix]
 }
 
+
+
+export const extractCommandFromLLM = (text: string): string => {
+	const [command] = extractCodeFromRegular({ text, recentlyAddedTextLen: 0 })
+	return command.trim()
+}
 
 
 export type ExtractedSearchReplaceBlock = {

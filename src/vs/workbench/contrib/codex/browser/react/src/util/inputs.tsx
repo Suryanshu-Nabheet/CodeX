@@ -15,10 +15,10 @@ import { useAccessor } from './services.js';
 import { ITextModel } from '../../../../../../../editor/common/model.js';
 import { asCssVariable } from '../../../../../../../platform/theme/common/colorUtils.js';
 import { inputBackground, inputForeground } from '../../../../../../../platform/theme/common/colorRegistry.js';
-import { useFloating, autoUpdate, offset, flip, shift, size, autoPlacement } from '@floating-ui/react';
+import { useFloating, autoUpdate, offset, flip, shift, size, autoPlacement, FloatingPortal } from '@floating-ui/react';
 import { URI } from '../../../../../../../base/common/uri.js';
 import { getBasename, getFolderName } from '../sidebar-tsx/SidebarChat.js';
-import { ChevronRight, File, Folder, FolderClosed, LucideProps } from 'lucide-react';
+import { ChevronRight, File, Folder, FolderClosed, LucideProps, GitBranch, History, Terminal } from 'lucide-react';
 import { StagingSelectionItem } from '../../../../common/chatThreadServiceTypes.js';
 import { DiffEditorWidget } from '../../../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { extractSearchReplaceBlocks, ExtractedSearchReplaceBlock } from '../../../../common/helpers/extractCodeFromResult.js';
@@ -67,6 +67,9 @@ type Option = {
 		| { leafNodeType?: undefined, nextOptions: Option[], generateNextOptions?: undefined, }
 		| { leafNodeType?: undefined, nextOptions?: undefined, generateNextOptions: GenerateNextOptions, }
 		| { leafNodeType: 'File' | 'Folder', uri: URI, nextOptions?: undefined, generateNextOptions?: undefined, }
+		| { leafNodeType: 'GitCommit', hash: string, message: string, uri?: URI, nextOptions?: undefined, generateNextOptions?: undefined, }
+		| { leafNodeType: 'GitBranch', name: string, uri?: URI, nextOptions?: undefined, generateNextOptions?: undefined, }
+		| { leafNodeType: 'TerminalPane', id: string, name: string, nextOptions?: undefined, generateNextOptions?: undefined, }
 	)
 
 
@@ -296,6 +299,64 @@ const getOptionsAtPath = async (accessor: ReturnType<typeof useAccessor>, path: 
 			iconInMenu: Folder,
 			generateNextOptions: async (t) => (await searchForFilesOrFolders(t, 'folders')) || [],
 		},
+		{
+			fullName: 'branches',
+			abbreviatedName: 'branches',
+			iconInMenu: GitBranch,
+			generateNextOptions: async (t) => {
+				const scmService = accessor.get('ICodexSCMService');
+				const workspaceContext = accessor.get('IWorkspaceContextService');
+				const root = workspaceContext.getWorkspace().folders[0]?.uri;
+				if (!root) return [];
+				const branches = await scmService.gitBranches(root.fsPath);
+				return branches.map((b: string) => ({
+					leafNodeType: 'GitBranch',
+					name: b,
+					uri: root,
+					iconInMenu: GitBranch,
+					fullName: b,
+					abbreviatedName: b,
+				} satisfies Option));
+			},
+		},
+		{
+			fullName: 'commits',
+			abbreviatedName: 'commits',
+			iconInMenu: History,
+			generateNextOptions: async (t) => {
+				const scmService = accessor.get('ICodexSCMService');
+				const workspaceContext = accessor.get('IWorkspaceContextService');
+				const root = workspaceContext.getWorkspace().folders[0]?.uri;
+				if (!root) return [];
+				const commits = await scmService.gitRecentCommits(root.fsPath);
+				return commits.map((c: { hash: string, message: string }) => ({
+					leafNodeType: 'GitCommit',
+					hash: c.hash,
+					message: c.message,
+					uri: root,
+					iconInMenu: History,
+					fullName: `${c.hash} ${c.message}`,
+					abbreviatedName: c.hash,
+				} satisfies Option));
+			},
+		},
+		{
+			fullName: 'terminals',
+			abbreviatedName: 'terminals',
+			iconInMenu: Terminal,
+			generateNextOptions: async (t) => {
+				const terminalService = accessor.get('ITerminalToolService');
+				const terminals = terminalService.listAllTerminals();
+				return terminals.map(term => ({
+					leafNodeType: 'TerminalPane',
+					id: term.id,
+					name: term.name,
+					iconInMenu: Terminal,
+					fullName: term.name,
+					abbreviatedName: term.name,
+				} satisfies Option));
+			},
+		},
 	]
 
 	// follow the path in the optionsTree (until the last path element)
@@ -340,7 +401,7 @@ const getOptionsAtPath = async (accessor: ReturnType<typeof useAccessor>, path: 
 
 
 
-export type TextAreaFns = { setValue: (v: string) => void, enable: () => void, disable: () => void }
+export type TextAreaFns = { setValue: (v: string) => void, enable: () => void, disable: () => void, openMentionMenu: () => void }
 type InputBox2Props = {
 	initValue?: string | null;
 	placeholder: string;
@@ -438,10 +499,24 @@ export const CodexInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fu
 			else if (option.leafNodeType === 'Folder') newSelection = {
 				type: 'Folder',
 				uri: option.uri,
-				language: undefined,
-				state: undefined,
 			}
-			else throw new Error(`Unexpected leafNodeType ${option.leafNodeType}`)
+			else if (option.leafNodeType === 'GitCommit') newSelection = {
+				type: 'GitCommit',
+				hash: option.hash,
+				message: option.message,
+				uri: option.uri,
+			}
+			else if (option.leafNodeType === 'GitBranch') newSelection = {
+				type: 'GitBranch',
+				name: option.name,
+				uri: option.uri,
+			}
+			else if (option.leafNodeType === 'TerminalPane') newSelection = {
+				type: 'TerminalPane',
+				id: option.id,
+				name: option.name,
+			}
+			else throw new Error(`Unexpected leafNodeType ${(option as any).leafNodeType}`)
 
 			chatThreadService.addNewStagingSelection(newSelection)
 		}
@@ -721,7 +796,8 @@ export const CodexInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fu
 		},
 		enable: () => { setEnabled(true) },
 		disable: () => { setEnabled(false) },
-	}), [onChangeText, adjustHeight])
+		openMentionMenu: () => { onOpenOptionMenu() },
+	}), [onOpenOptionMenu, onChangeText, adjustHeight])
 
 
 
@@ -809,35 +885,30 @@ export const CodexInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fu
 		{isMenuOpen && (
 			<div
 				ref={refs.setFloating}
-				className="z-[100] border-codex-border-3 bg-codex-bg-2-alt border rounded shadow-lg flex flex-col overflow-hidden"
+				className="z-[100] border-codex-border-3 bg-codex-bg-2-alt border rounded-md shadow-xl flex flex-col overflow-hidden backdrop-blur-md"
 				style={{
 					position: strategy,
 					top: y ?? 0,
 					left: x ?? 0,
-					width: refs.reference.current instanceof HTMLElement ? refs.reference.current.offsetWidth : 0
+					width: refs.reference.current instanceof HTMLElement ? Math.min(refs.reference.current.offsetWidth * 0.95, 450) : 0,
+					minWidth: '220px'
 				}}
 				onWheel={(e) => e.stopPropagation()}
 			>
 				{/* Breadcrumbs Header */}
-				{isBreadcrumbsShowing && <div className="px-2 py-1 text-codex-fg-1 bg-codex-bg-2-alt border-b border-codex-border-3 sticky top-0 bg-codex-bg-1 z-10 select-none pointer-events-none">
+				{isBreadcrumbsShowing && <div className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold text-codex-fg-3 bg-codex-bg-2-alt border-b border-codex-border-3 sticky top-0 bg-codex-bg-1 z-10 select-none pointer-events-none opacity-80">
 					{optionText ?
 						<div className="flex items-center">
-							{/* {optionPath.map((path, index) => (
-								<React.Fragment key={index}>
-									<span>{path}</span>
-									<ChevronRight size={12} className="mx-1" />
-								</React.Fragment>
-							))} */}
 							<span>{optionText}</span>
 						</div>
-						: <div className='opacity-50'>Enter text to filter...</div>
+						: <div className='opacity-50'>Type to filter...</div>
 					}
 				</div>}
 
 
 				{/* Options list */}
-				<div className='max-h-[400px] w-full max-w-full overflow-y-auto overflow-x-auto'>
-					<div className="w-max min-w-full flex flex-col gap-0 text-nowrap flex-nowrap">
+				<div className='max-h-[350px] w-full max-w-full overflow-y-auto overflow-x-hidden'>
+					<div className="flex flex-col gap-0 min-w-full">
 						{options.length === 0 ?
 							<div className="text-codex-fg-3 px-3 py-0.5">No results found</div>
 							: options.map((o, oIdx) => {
@@ -848,21 +919,27 @@ export const CodexInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fu
 										ref={oIdx === optionIdx ? selectedOptionRef : null}
 										key={o.fullName}
 										className={`
-											flex items-center gap-2
-											px-3 py-1 cursor-pointer
-											${oIdx === optionIdx ? 'bg-blue-500 text-white/80' : 'bg-codex-bg-2-alt text-codex-fg-1'}
+											flex items-center gap-x-2.5
+											px-2 py-1 mx-1 my-0.5 rounded-md cursor-pointer text-xs
+											${oIdx === optionIdx ? 'bg-blue-600 text-white shadow-sm' : 'bg-transparent text-codex-fg-1 hover:bg-white/5'}
+											transition-all duration-75
 										`}
 										onClick={() => { onSelectOption(); }}
 										onMouseMove={() => { setOptionIdx(oIdx) }}
 									>
-										{<o.iconInMenu size={12} />}
+										<div className={`flex-shrink-0 ${oIdx === optionIdx ? 'text-white' : 'text-codex-fg-3'} opacity-80`}>
+											{o.iconInMenu ? <o.iconInMenu size={13} /> : <File size={13} />}
+										</div>
+										<span className="font-medium truncate max-w-[45%]">{o.abbreviatedName}</span>
 
-										<span>{o.abbreviatedName}</span>
-
-										{o.fullName && o.fullName !== o.abbreviatedName && <span className="opacity-60 text-sm">{o.fullName}</span>}
+										{o.fullName && o.fullName !== o.abbreviatedName && (
+											<span className={`truncate text-[10px] opacity-40 ml-auto flex-1 text-right pr-1 ${oIdx === optionIdx ? 'text-white' : ''}`}>
+												{o.fullName}
+											</span>
+										)}
 
 										{o.nextOptions || o.generateNextOptions ? (
-											<ChevronRight size={12} />
+											<ChevronRight size={13} className="opacity-50 flex-shrink-0" />
 										) : null}
 
 									</div>
@@ -1184,18 +1261,23 @@ export const CodexSwitch = ({
 				className={`
 			cursor-pointer
 			relative inline-flex items-center rounded-full transition-colors duration-200 ease-in-out
-			${value ? 'bg-zinc-900 dark:bg-white' : 'bg-white dark:bg-zinc-600'}
-			${disabled ? 'opacity-25' : ''}
+			${disabled ? 'opacity-40' : ''}
 			${size === 'xxs' ? 'h-3 w-5' : ''}
 			${size === 'xs' ? 'h-4 w-7' : ''}
 			${size === 'sm' ? 'h-5 w-9' : ''}
 			${size === 'sm+' ? 'h-5 w-10' : ''}
 			${size === 'md' ? 'h-6 w-11' : ''}
 		  `}
+				style={{
+					background: value
+						? 'var(--vscode-button-background)'
+						: 'var(--vscode-checkbox-background)',
+					border: value ? 'none' : '1.5px solid var(--vscode-checkbox-border)',
+				}}
 			>
 				<span
 					className={`
-			  inline-block transform rounded-full bg-white dark:bg-zinc-900 shadow transition-transform duration-200 ease-in-out
+			  inline-block transform rounded-full shadow-sm transition-transform duration-200 ease-in-out
 			  ${size === 'xxs' ? 'h-2 w-2' : ''}
 			  ${size === 'xs' ? 'h-2.5 w-2.5' : ''}
 			  ${size === 'sm' ? 'h-3 w-3' : ''}
@@ -1207,6 +1289,7 @@ export const CodexSwitch = ({
 			  ${size === 'sm+' ? (value ? 'translate-x-6' : 'translate-x-1') : ''}
 			  ${size === 'md' ? (value ? 'translate-x-6' : 'translate-x-1') : ''}
 			`}
+					style={{ background: 'var(--vscode-button-foreground, white)' }}
 				/>
 			</div>
 		</label>
@@ -1258,12 +1341,18 @@ export const CodexCustomDropdownBox = <T extends NonNullable<any>>({
 	getOptionDropdownName,
 	getOptionDropdownDetail,
 	getOptionDisplayName,
+	getOptionIcon,
+	getOptionDropdownIcon,
 	getOptionsEqual,
 	className,
 	arrowTouchesText = true,
 	matchInputWidth = false,
-	gapPx = 0,
+	gapPx = 8,
 	offsetPx = -6,
+	fixedWidth,
+	dividedLayout = false,
+	maxHeight: maxHeightProp = 350,
+	getOptionGroupName,
 }: {
 	options: T[];
 	selectedOption: T | undefined;
@@ -1271,15 +1360,23 @@ export const CodexCustomDropdownBox = <T extends NonNullable<any>>({
 	getOptionDropdownName: (option: T) => string;
 	getOptionDropdownDetail?: (option: T) => string;
 	getOptionDisplayName: (option: T) => string;
+	getOptionIcon?: (option: T) => React.ReactNode;
+	getOptionDropdownIcon?: (option: T) => React.ReactNode;
 	getOptionsEqual: (a: T, b: T) => boolean;
+	getOptionGroupName?: (option: T) => string;
 	className?: string;
 	arrowTouchesText?: boolean;
 	matchInputWidth?: boolean;
 	gapPx?: number;
 	offsetPx?: number;
+	fixedWidth?: number;
+	dividedLayout?: boolean;
+	maxHeight?: number;
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const measureRef = useRef<HTMLDivElement>(null);
+
+
 
 	// Replace manual positioning with floating-ui
 	const {
@@ -1298,28 +1395,28 @@ export const CodexCustomDropdownBox = <T extends NonNullable<any>>({
 			offset({ mainAxis: gapPx, crossAxis: offsetPx }),
 			flip({
 				boundary: document.body,
-				padding: 8
+				padding: 12 // Increased padding to avoid IDE headers
 			}),
 			shift({
 				boundary: document.body,
-				padding: 8,
+				padding: 12,
 			}),
 			size({
 				apply({ availableHeight, elements, rects }) {
-					const maxHeight = Math.min(availableHeight)
+					const maxHeight = Math.min(availableHeight, maxHeightProp)
+					const width = fixedWidth ?? Math.max(
+						rects.reference.width,
+						measureRef.current?.offsetWidth ? measureRef.current.offsetWidth + 8 : 0
+					)
 
 					Object.assign(elements.floating.style, {
 						maxHeight: `${maxHeight}px`,
 						overflowY: 'auto',
-						// Ensure the width isn't constrained by the parent
-						width: `${Math.max(
-							rects.reference.width,
-							measureRef.current?.offsetWidth ?? 0
-						)}px`
+						scrollbarWidth: 'thin',
+						width: `${width}px`,
 					});
 				},
-				padding: 8,
-				// Use viewport as boundary instead of any parent element
+				padding: 12,
 				boundary: document.body,
 			}),
 		],
@@ -1391,21 +1488,26 @@ export const CodexCustomDropdownBox = <T extends NonNullable<any>>({
 			<button
 				type='button'
 				ref={refs.setReference}
-				className="flex items-center h-4 bg-transparent whitespace-nowrap hover:brightness-90 w-full"
+				className="flex items-center h-4 bg-transparent whitespace-nowrap w-full pr-1"
 				onClick={() => setIsOpen(!isOpen)}
 			>
-				<span className={`truncate ${arrowTouchesText ? 'mr-1' : ''}`}>
+				{getOptionIcon?.(selectedOption) && (
+					<div className="flex-shrink-0 mr-1.5 flex items-center opacity-80">
+						{getOptionIcon(selectedOption)}
+					</div>
+				)}
+				<span className={`truncate text-xs ${arrowTouchesText ? 'mr-0.5' : ''}`}>
 					{getOptionDisplayName(selectedOption)}
 				</span>
 				<svg
-					className={`size-3 flex-shrink-0 ${arrowTouchesText ? '' : 'ml-auto'}`}
+					className={`size-2 flex-shrink-0 opacity-40 ${arrowTouchesText ? '' : 'ml-auto'}`}
 					viewBox="0 0 12 12"
 					fill="none"
 				>
 					<path
 						d="M2.5 4.5L6 8L9.5 4.5"
 						stroke="currentColor"
-						strokeWidth="1.5"
+						strokeWidth="2.5"
 						strokeLinecap="round"
 						strokeLinejoin="round"
 					/>
@@ -1416,62 +1518,124 @@ export const CodexCustomDropdownBox = <T extends NonNullable<any>>({
 			{isOpen && (
 				<div
 					ref={refs.setFloating}
-					className="z-[100] bg-codex-bg-1 border-codex-border-3 border rounded shadow-lg"
+					className="z-[1000] bg-codex-bg-1 border-codex-border-3 border rounded-md shadow-2xl overflow-hidden backdrop-blur-md"
 					style={{
 						position: strategy,
 						top: y ?? 0,
 						left: x ?? 0,
+						// Width is handled by size middleware apply function, but we provide a default here
+						// to avoid flickering or if the middleware hasn't run yet.
 						width: (matchInputWidth
 							? (refs.reference.current instanceof HTMLElement ? refs.reference.current.offsetWidth : 0)
-							: Math.max(
-								(refs.reference.current instanceof HTMLElement ? refs.reference.current.offsetWidth : 0),
-								(measureRef.current instanceof HTMLElement ? measureRef.current.offsetWidth : 0)
-							))
+							: fixedWidth ?? (measureRef.current instanceof HTMLElement ? measureRef.current.offsetWidth + 8 : 0))
 					}}
 					onWheel={(e) => e.stopPropagation()}
 				><div className='overflow-auto max-h-80'>
 
-						{options.map((option) => {
-							const thisOptionIsSelected = getOptionsEqual(option, selectedOption);
-							const optionName = getOptionDropdownName(option);
-							const optionDetail = getOptionDropdownDetail?.(option) || '';
+						{(() => {
+							let currentGroup: string | undefined = undefined;
+							return options.map((option, idx) => {
+								const thisOptionIsSelected = getOptionsEqual(option, selectedOption);
+								const optionName = getOptionDropdownName(option);
+								const optionDetail = getOptionDropdownDetail?.(option) || '';
+								const groupName = getOptionGroupName?.(option);
 
-							return (
-								<div
-									key={optionName}
-									className={`flex items-center px-2 py-1 pr-4 cursor-pointer whitespace-nowrap
-									transition-all duration-100
-									${thisOptionIsSelected ? 'bg-blue-500 text-white/80' : 'hover:bg-blue-500 hover:text-white/80'}
-								`}
-									onClick={() => {
-										onChangeOption(option);
-										setIsOpen(false);
-									}}
-								>
-									<div className="w-4 flex justify-center flex-shrink-0">
-										{thisOptionIsSelected && (
-											<svg className="size-3" viewBox="0 0 12 12" fill="none">
-												<path
-													d="M10 3L4.5 8.5L2 6"
-													stroke="currentColor"
-													strokeWidth="1.5"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												/>
-											</svg>
-										)}
-									</div>
-									<span className="flex justify-between items-center w-full gap-x-1">
-										<span>{optionName}</span>
-										<span className='opacity-60'>{optionDetail}</span>
-									</span>
-								</div>
-							);
-						})}
+								const elements = [];
+								if (groupName && groupName !== currentGroup) {
+									currentGroup = groupName;
+									elements.push(
+										<div key={`header-${groupName}`} className="px-2 py-1.5 text-[10px] uppercase tracking-widest font-bold opacity-30 mt-1 first:mt-0 select-none cursor-default">
+											{groupName}
+										</div>
+									);
+								}
+
+								elements.push(
+									<DropdownListItem
+										key={optionName}
+										option={option}
+										optionName={optionName}
+										optionDetail={optionDetail}
+										isSelected={thisOptionIsSelected}
+										icon={getOptionDropdownIcon?.(option)}
+										dividedLayout={dividedLayout}
+										onClick={() => {
+											onChangeOption(option);
+											setIsOpen(false);
+										}}
+									/>
+								);
+								return elements;
+							});
+						})()}
 					</div>
-
 				</div>
 			)}
+		</div>
+	);
+};
+
+const DropdownListItem = <T,>({
+	option,
+	optionName,
+	optionDetail,
+	isSelected,
+	icon,
+	dividedLayout,
+	onClick
+}: {
+	option: T;
+	optionName: string;
+	optionDetail: string;
+	isSelected: boolean;
+	icon?: React.ReactNode;
+	dividedLayout: boolean;
+	onClick: () => void;
+}) => {
+	return (
+		<div
+			className={`flex items-center px-1.5 py-1 pr-2 mx-1 my-0.5 rounded cursor-pointer text-xs group relative
+				${isSelected ? 'bg-blue-600/90 text-white' : 'text-codex-fg-1'}
+			`}
+			onClick={onClick}
+		>
+			{icon && (
+				<div className="flex-shrink-0 mr-1.5 opacity-80 flex items-center justify-center">
+					{icon}
+				</div>
+			)}
+
+			<span className="flex items-center w-full min-w-0">
+				{dividedLayout ? (
+					<div className="flex items-center w-full min-w-0">
+						<span className={`w-[75%] truncate font-medium pr-2`}>
+							{optionName}
+						</span>
+						<span className={`w-[25%] truncate text-right opacity-40 text-[9px] uppercase tracking-tighter ml-auto`}>
+							{optionDetail}
+						</span>
+					</div>
+				) : (
+					<div className='flex items-center justify-between w-full'>
+						<span className="font-medium truncate">{optionName}</span>
+						{optionDetail && <span className='opacity-40 text-[9px] uppercase tracking-tighter ml-2'>{optionDetail}</span>}
+					</div>
+				)}
+
+				<div className="w-4 flex justify-center flex-shrink-0 ml-1">
+					{isSelected && (
+						<svg className="size-2.5" viewBox="0 0 12 12" fill="none">
+							<path
+								d="M10 3L4.5 8.5L2 6"
+								stroke="currentColor"
+								strokeWidth="2.5"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
+						</svg>
+					)}
+				</div>
+			</span>
 		</div>
 	);
 };

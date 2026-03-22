@@ -10,6 +10,8 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ICodeEditorService } from '../../../../editor/browser/services/codeEditorService.js';
 import { URI } from '../../../../base/common/uri.js';
+import { IDirectoryStrService } from '../common/directoryStrService.js';
+import { IFileService } from '../../../../platform/files/common/files.js';
 
 
 // make sure snippet logic works
@@ -42,7 +44,9 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 	constructor(
 		@ILanguageFeaturesService private readonly _langFeaturesService: ILanguageFeaturesService,
 		@IModelService private readonly _modelService: IModelService,
-		@ICodeEditorService private readonly _codeEditorService: ICodeEditorService
+		@ICodeEditorService private readonly _codeEditorService: ICodeEditorService,
+		@IDirectoryStrService private readonly _directoryStrService: IDirectoryStrService,
+		@IFileService private readonly _fileService: IFileService,
 	) {
 		super();
 		this._modelService.getModels().forEach(model => this._subscribeToModel(model));
@@ -61,7 +65,7 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 						this.updateCache(model, pos);
 					}
 				}
-			}, 150); // Debounce to avoid excessive symbol lookups
+			}, 50); // Debounce to avoid excessive symbol lookups
 		}));
 	}
 
@@ -93,13 +97,23 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 		const snippets = new Set<string>();
 		this._snippetIntervals = []; // Reset intervals for new cache update
 
-		await this._gatherNearbySnippets(model, pos, this._DEFAULT_SNIPPET_LINE_COUNT, 5, snippets, this._snippetIntervals); // Deep architectual scan
+		await this._gatherNearbySnippets(model, pos, this._DEFAULT_SNIPPET_LINE_COUNT, 5, snippets, this._snippetIntervals); // Deep architectural scan
 		await this._gatherParentSnippets(model, pos, this._DEFAULT_SNIPPET_LINE_COUNT, 5, snippets, this._snippetIntervals); // Full logic-tree resolution
 		await this._gatherArchitecturalContext(model, pos, snippets); // Project-wide awareness scan
+		await this._gatherProjectPulse(model, snippets); // High-level project pulse
+		await this._gatherHotFiles(snippets); // Mission-critical file context
 
-		// Convert to array and filter overlapping snippets
-		this._cache = Array.from(snippets);
-		console.log('Cache updated:', this._cache);
+		// Convert to array and prioritize by relevance
+		const prioritized = Array.from(snippets).sort((a, b) => {
+			// Prioritize local siblings and parent snippets
+			if (a.includes('Sibling Context') && !b.includes('Sibling Context')) return -1;
+			if (b.includes('Sibling Context') && !a.includes('Sibling Context')) return 1;
+			return b.length - a.length; // Prefer more detailed context if other factors are equal
+		});
+
+		// Cap total context size to prevent LLM overload (approx 3000 tokens)
+		this._cache = prioritized.slice(0, 15); 
+		console.log('Cache updated with prioritized snippets:', this._cache.length);
 	}
 
 	public getCachedSnippets(): string[] {
@@ -375,6 +389,61 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 						current.range.endColumn < innermost.range.endColumn));
 			return moreInner ? current : innermost;
 		}, null as DocumentSymbol | null);
+	}
+
+	private async _gatherProjectPulse(model: ITextModel, snippets: Set<string>): Promise<void> {
+		try {
+			const currentUri = model.uri;
+			const parentDir = URI.revive(currentUri).with({ path: currentUri.path.split('/').slice(0, -1).join('/') });
+			
+			// Get siblings to understand local neighborhood
+			const dirContent = await this._fileService.resolve(parentDir);
+			if (dirContent.children) {
+				const siblings = dirContent.children
+					.filter(c => !c.isDirectory && c.name !== currentUri.path.split('/').pop())
+					.slice(0, 3); // Top 3 siblings
+
+				for (const sibling of siblings) {
+					const siblingModel = this._modelService.getModel(sibling.resource);
+					let content = '';
+					if (siblingModel) {
+						content = siblingModel.getValueInRange(new Range(1, 1, 30, 1)); // First 30 lines (exports/imports)
+					} else {
+						const fileContent = await this._fileService.readFile(sibling.resource);
+						content = fileContent.value.toString().split('\n').slice(0, 30).join('\n');
+					}
+					if (content.trim()) {
+						snippets.add(`// Sibling Context (${sibling.name}):\n${this._cleanSnippet(content)}`);
+					}
+				}
+			}
+
+			// Add global structure hint
+			const structure = await this._directoryStrService.getAllDirectoriesStr({ cutOffMessage: '...' });
+			if (structure) {
+				snippets.add(`// Project Structure Overview:\n${structure.split('\n').slice(0, 20).join('\n')}`);
+			}
+		} catch (e) {
+			console.warn('Project pulse error:', e);
+		}
+	}
+
+	private async _gatherHotFiles(snippets: Set<string>): Promise<void> {
+		try {
+			// Mission critical files that define the project environment
+			const hotFiles = ['package.json', 'tsconfig.json', 'README.md', 'src/vs/workbench/contrib/codex/common/prompt/prompts.ts']; 
+			// Note: prompts.ts is added because it's the core of the AI logic in this specific project
+			
+			for (const fileName of hotFiles) {
+				const models = this._modelService.getModels();
+				const model = models.find(m => m.uri.path.endsWith(fileName));
+				if (model) {
+					snippets.add(`// Hot File Context (${fileName}):\n${model.getValueInRange(new Range(1, 1, 20, 1))}`);
+				}
+			}
+		} catch (e) {
+			console.warn('Hot file gathering error:', e);
+		}
 	}
 }
 

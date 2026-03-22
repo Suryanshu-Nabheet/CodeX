@@ -27,6 +27,10 @@ export const approvalTypeOfBuiltinToolName: Partial<{ [T in BuiltinToolName]?: '
 	'run_persistent_command': 'terminal',
 	'open_persistent_terminal': 'terminal',
 	'kill_persistent_terminal': 'terminal',
+	'git_status': 'terminal',
+	'git_log': 'terminal',
+	'git_show': 'terminal',
+	'git_diff': 'terminal',
 }
 
 
@@ -60,6 +64,10 @@ export type BuiltinToolCallParams = {
 	'open_persistent_terminal': { cwd: string | null },
 	'run_persistent_command': { command: string; persistentTerminalId: string },
 	'kill_persistent_terminal': { persistentTerminalId: string },
+	'git_status': { cwd: string | null },
+	'git_log': { cwd: string | null, limit: number },
+	'git_show': { cwd: string | null, hash: string },
+	'git_diff': { cwd: string | null, base: string, head: string },
 }
 
 // RESULT OF TOOL CALL
@@ -81,6 +89,10 @@ export type BuiltinToolResultType = {
 	'run_persistent_command': { result: string; resolveReason: TerminalResolveReason; },
 	'open_persistent_terminal': { persistentTerminalId: string },
 	'kill_persistent_terminal': {},
+	'git_status': { status: string },
+	'git_log': { log: string },
+	'git_show': { details: string },
+	'git_diff': { diff: string },
 }
 
 

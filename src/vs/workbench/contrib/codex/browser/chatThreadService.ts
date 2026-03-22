@@ -32,6 +32,7 @@ import { INotificationService, Severity } from '../../../../platform/notificatio
 import { truncate } from '../../../../base/common/strings.js';
 import { THREAD_STORAGE_KEY } from '../common/storageKeys.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
+import { ITerminalToolService } from './terminalToolService.js';
 import { timeout } from '../../../../base/common/async.js';
 import { deepClone } from '../../../../base/common/objects.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
@@ -39,6 +40,7 @@ import { IDirectoryStrService } from '../common/directoryStrService.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IMCPService } from '../common/mcpService.js';
 import { RawMCPToolCall } from '../common/mcpServiceTypes.js';
+import { ICodexSCMService } from '../common/codexSCMTypes.js';
 
 
 // related to retrying when LLM message has error
@@ -52,21 +54,32 @@ const findStagingSelectionIndex = (currentSelections: StagingSelectionItem[] | u
 	for (let i = 0; i < currentSelections.length; i += 1) {
 		const s = currentSelections[i]
 
-		if (s.uri.fsPath !== newSelection.uri.fsPath) continue
+		if (s.type !== newSelection.type) continue
 
-		if (s.type === 'File' && newSelection.type === 'File') {
-			return i
-		}
-		if (s.type === 'CodeSelection' && newSelection.type === 'CodeSelection') {
-			if (s.uri.fsPath !== newSelection.uri.fsPath) continue
-			// if there's any collision return true
-			const [oldStart, oldEnd] = s.range
-			const [newStart, newEnd] = newSelection.range
-			if (oldStart !== newStart || oldEnd !== newEnd) continue
-			return i
-		}
-		if (s.type === 'Folder' && newSelection.type === 'Folder') {
-			return i
+		switch (s.type) {
+			case 'File':
+				if (s.uri.fsPath === (newSelection as any).uri.fsPath) return i
+				break
+			case 'CodeSelection': {
+				const ns = newSelection as Extract<StagingSelectionItem, { type: 'CodeSelection' }>
+				if (s.uri.fsPath !== ns.uri.fsPath) break
+				const [oldStart, oldEnd] = s.range
+				const [newStart, newEnd] = ns.range
+				if (oldStart === newStart && oldEnd === newEnd) return i
+				break
+			}
+			case 'Folder':
+				if (s.uri.fsPath === (newSelection as any).uri.fsPath) return i
+				break
+			case 'GitBranch':
+				if (s.name === (newSelection as any).name && s.uri?.fsPath === (newSelection as any).uri?.fsPath) return i
+				break
+			case 'GitCommit':
+				if (s.hash === (newSelection as any).hash && s.uri?.fsPath === (newSelection as any).uri?.fsPath) return i
+				break
+			case 'TerminalPane':
+				if (s.id === (newSelection as any).id) return i
+				break
 		}
 	}
 	return null
@@ -327,6 +340,8 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 		@IDirectoryStrService private readonly _directoryStringService: IDirectoryStrService,
 		@IFileService private readonly _fileService: IFileService,
 		@IMCPService private readonly _mcpService: IMCPService,
+		@ITerminalToolService private readonly _terminalToolService: ITerminalToolService,
+		@ICodexSCMService private readonly _codexSCMService: ICodexSCMService,
 	) {
 		super()
 		this.state = { allThreads: {}, currentThreadId: null as unknown as string } // default state
@@ -1250,7 +1265,30 @@ We only need to do it for files that were edited since `from`, ie files between 
 		const instructions = userMessage
 		const currSelns: StagingSelectionItem[] = _chatSelections ?? thread.state.stagingSelections
 
-		const userMessageContent = await chat_userMessageContent(instructions, currSelns, { directoryStrService: this._directoryStringService, fileService: this._fileService }) // user message + names of files (NOT content)
+		const currSelnsWithContent = await Promise.all(currSelns.map(async s => {
+			if (s.type === 'TerminalPane') {
+				try {
+					const terminalContent = await this._terminalToolService.readTerminal(s.id);
+					return { ...s, terminalContent };
+				} catch (e) {
+					return { ...s, terminalContent: `Error reading terminal: ${getErrorMessage(e)}` };
+				}
+			}
+			else if (s.type === 'GitCommit') {
+				try {
+					const root = s.uri?.fsPath || this._workspaceContextService.getWorkspace().folders[0]?.uri.fsPath;
+					if (root) {
+						const gitShowContent = await this._codexSCMService.gitShow(root, s.hash);
+						return { ...s, gitShowContent };
+					}
+				} catch (e) {
+					return { ...s, gitShowContent: `Error reading commit: ${getErrorMessage(e)}` };
+				}
+			}
+			return s;
+		}));
+
+		const userMessageContent = await chat_userMessageContent(instructions, currSelnsWithContent as any, { directoryStrService: this._directoryStringService, fileService: this._fileService }) // user message + names of files (NOT content)
 		const userHistoryElt: ChatMessage = { role: 'user', content: userMessageContent, displayContent: instructions, selections: currSelns, state: defaultMessageState }
 		this._addMessageToThread(threadId, userHistoryElt)
 
@@ -1341,7 +1379,9 @@ We only need to do it for files that were edited since `from`, ie files between 
 			// URIs of user selections
 			if (m.role === 'user') {
 				for (const sel of m.selections ?? []) {
-					addURI(sel.uri)
+					if ('uri' in sel && sel.uri) {
+						addURI(sel.uri)
+					}
 				}
 			}
 			// URIs of files that have been read

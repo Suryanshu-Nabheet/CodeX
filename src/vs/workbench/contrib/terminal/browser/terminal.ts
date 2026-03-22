@@ -1038,11 +1038,17 @@ export interface ITerminalInstance extends IBaseTerminalInstance {
 	handleMouseEvent(event: MouseEvent, contextMenu: IMenu): Promise<{ cancelContextMenu: boolean } | void>;
 
 	/**
+	 * Toggles the visibility and height of the terminal footer (CodeX ⌘K hint).
+	 */
+	setFooterVisible(visible: boolean, height?: number): void;
+
+	/**
 	 * Pause input events until the provided barrier is resolved.
 	 * @param barrier The barrier to wait for until input events can continue.
 	 */
 	pauseInputEvents(barrier: Barrier): void;
 }
+
 
 export const enum XtermTerminalConstants {
 	SearchHighlightLimit = 20000

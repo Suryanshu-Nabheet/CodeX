@@ -2,8 +2,11 @@
 	"name": "codex-error-lens",
 	"displayName": "CodeX Error Lens",
 	"description": "Integrated error highlighting for CodeX. Instantly see errors and warnings directly in your code.",
-	"version": "3.28.0",
-	"publisher": "codex",
+	"version": "0.0.1",
+	"publisher": "Suryanshu-Nabheet",
+	"author": {
+		"name": "Suryanshu Nabheet"
+	},
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.96.0",

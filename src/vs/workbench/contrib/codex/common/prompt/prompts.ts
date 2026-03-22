@@ -336,7 +336,39 @@ export const builtinTools: {
 		name: 'kill_persistent_terminal',
 		description: `Interrupts and closes a persistent terminal that you opened with open_persistent_terminal.`,
 		params: { persistent_terminal_id: { description: `The ID of the persistent terminal.` } }
-	}
+	},
+	git_status: {
+		name: 'git_status',
+		description: 'Returns the status of the current git repository.',
+		params: {
+			cwd: { description: cwdHelper }
+		}
+	},
+	git_log: {
+		name: 'git_log',
+		description: 'Shows the commit history of the repository.',
+		params: {
+			cwd: { description: cwdHelper },
+			limit: { description: 'Optional. The number of commits to show. Default is 20.' }
+		}
+	},
+	git_show: {
+		name: 'git_show',
+		description: 'Shows the details of a specific commit.',
+		params: {
+			cwd: { description: cwdHelper },
+			hash: { description: 'The hash of the commit to show.' }
+		}
+	},
+	git_diff: {
+		name: 'git_diff',
+		description: 'Shows the differences between two branches/commits.',
+		params: {
+			cwd: { description: cwdHelper },
+			base: { description: 'The base branch or commit.' },
+			head: { description: 'The head branch or commit.' }
+		}
+	},
 
 
 	// go_to_definition
@@ -475,6 +507,15 @@ ${directoryStr}
 		details.push('Only use ONE tool call at a time.')
 		details.push(`NEVER say something like "I'm going to use \`tool_name\`". Instead, describe at a high level what the tool will do, like "I'm going to list all files in the ___ directory", etc.`)
 		details.push(`Many tools only work if the user has a workspace open.`)
+		
+		details.push(`### MANDATORY ROADMAP
+For any complex research or multi-step action, you MUST include a <plan> block at the START of your response to track your progress.
+Example:
+<plan>
+[done] Initial architecture scan
+[doing] Mapping data flow between modules
+[todo] Final recommendation and summary
+</plan>`)
 	}
 	else {
 		details.push(`You're allowed to ask the user for more context like file contents or specifications. If this comes up, tell them to reference files and folders by typing @.`)
@@ -485,7 +526,27 @@ ${directoryStr}
 		details.push('You are encouraged to take multiple autonomous steps to reach the final goal. If you need to read a file, list a directory, and then run a test, do so sequentially without waiting for unnecessary user input between steps.')
 		details.push(`You will OFTEN need to gather exhaustive context before making a change. Never assume; always verify by reading the relevant source files and definitions.`)
 		details.push(`ALWAYS strive for 100% certainty in a change BEFORE you apply it. Use your tools to cross-reference and validate your understanding.`)
-		details.push(`Maintain a mindset of "Zero Bugs" and "Blazing Performance" in everything you suggest or implement.`)
+		details.push(`### ABSOLUTE REQUIRED RESPONSE FORMAT
+For ANY multi-step task (research, editing, terminal runs):
+1. START YOUR RESPONSE WITH A <plan> BLOCK.
+2. The <plan> is the ONLY "Source of Truth" for progress.
+3. Plan items MUST be concise, descriptive milestones. NEVER leave a plan item blank.
+4. If you do not provide a <plan>, you have FAILED the objective.
+
+Plan Execution Rules:
+- Mark milestones as [done] ONLY when fully completed.
+- Use [doing] for your active objective.
+- Keep the plan focused on HIGH-LEVEL goals.
+- DO NOT list minor tool calls.
+
+Example start:
+<plan>
+[done] Logic mapping and dependency audit
+[doing] core engine implementation
+[todo] validation and hardening
+</plan>
+
+(Followed by your brief explanation and tool calls)`)
 	}
 
 
@@ -615,6 +676,18 @@ export const messageOfSelection = async (
 		}))
 		const contentStr = [folderStructure, ...strOfFiles].join('\n\n')
 		return contentStr
+	}
+	else if (s.type === 'GitCommit') {
+		const gitShowContent = (s as any).gitShowContent
+		const gitShowStr = gitShowContent ? `\nCommit Details:\n${tripleTick[0]}diff\n${gitShowContent}\n${tripleTick[1]}` : ''
+		return `Git Commit: ${s.hash}\nMessage: ${s.message}${s.uri ? `\nRepository: ${s.uri.fsPath}` : ''}${gitShowStr}`
+	}
+	else if (s.type === 'GitBranch') {
+		return `Git Branch: ${s.name}${s.uri ? `\nRepository: ${s.uri.fsPath}` : ''}`
+	}
+	else if (s.type === 'TerminalPane') {
+		const terminalContent = (s as any).terminalContent || '(Terminal content not available)'
+		return `Terminal Pane: ${s.name}\nID: ${s.id}\nContent:\n${tripleTick[0]}shell\n${terminalContent}\n${tripleTick[1]}`
 	}
 	else
 		return ''
@@ -810,6 +883,36 @@ Return only the completion block of code (of the form ${tripleTick[0]}${language
 <${midTag}>...new code</${midTag}>
 ${tripleTick[1]}).`
 };
+
+
+
+// ======================================================== terminal quick edit (ctrl+K) ========================================================
+
+export const terminalCommand_systemMessage = `\
+You are an elite terminal command architect within CodeX—the AI-native IDE built by Suryanshu Nabheet. Your sole mission is to generate surgical, production-ready terminal commands from user instructions.
+
+CRITICAL RULES:
+1. OUTPUT ONLY THE COMMAND. ABSOLUTELY NO TEXT, EXPLANATIONS, CONTEXT, OR TRIPLE BACKTICKS.
+2. The command MUST be complete and ready for immediate execution in a shell environment.
+3. Be precisely accurate according to the user's operating system (${os}) and current codebase structure.
+4. If you suggest a command that modifies the codebase, ensure it follows professional standards (e.g., using proper flags with \`git\`, \`npm\`, etc.).
+`
+
+export const terminalCommand_userMessage = ({ instructions, terminalHistory, directoryStr }: { instructions: string, terminalHistory: string, directoryStr: string }) => {
+	return `\
+CODEBASE STRUCTURE (for architectural context):
+${directoryStr}
+
+TERMINAL HISTORY (for recent execution context):
+${terminalHistory}
+
+USER INSTRUCTIONS (the primary objective):
+${instructions}
+
+Return ONLY the command string. Zero conversational filler.
+`
+}
+
 
 
 

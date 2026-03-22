@@ -78,10 +78,10 @@ export const defaultModelsOfProvider = {
 		'gpt-4.1-nano',
 		'o3',
 		'o4-mini',
-		// 'o1',
-		// 'o1-mini',
-		// 'gpt-4o',
-		// 'gpt-4o-mini',
+		'o1',
+		'o1-mini',
+		'gpt-4o',
+		'gpt-4o-mini',
 	],
 	anthropic: [ // https://docs.anthropic.com/en/docs/about-claude/models
 		'claude-opus-4-0',
@@ -133,6 +133,8 @@ export const defaultModelsOfProvider = {
 		'google/gemini-2.0-flash-lite-preview-02-05:free',
 		'google/gemini-2.0-pro-exp-02-05:free',
 		'google/gemini-2.0-flash-exp:free',
+		'google/gemini-2.5-pro-exp-03-25:free',
+		'google/gemini-2.5-flash-preview-04-17:free',
 	],
 	groq: [ // https://console.groq.com/docs/models
 		'qwen-qwq-32b',

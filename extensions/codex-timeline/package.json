@@ -2,15 +2,16 @@
   "name": "codex-timeline",
   "displayName": "CodeX Timeline",
   "description": "Adds list of last commits in source control tab",
-  "version": "4.2.4",
-  "publisher": "codex-ide",
-  "repository": "https://github.com/Suryanshu-Nabheet/codex.git",
+  "version": "0.0.1",
+  "publisher": "Suryanshu-Nabheet",
+  "author": "Suryanshu Nabheet",
+  "repository": "https://github.com/Suryanshu-Nabheet/CodeX.git",
   "license": "MIT",
   "icon": "icon.png",
   "bugs": {
-    "url": "https://github.com/Suryanshu-Nabheet/codex/issues"
+    "url": "https://github.com/Suryanshu-Nabheet/CodeX/issues"
   },
-  "homepage": "https://github.com/Suryanshu-Nabheet/codex#readme",
+  "homepage": "https://github.com/Suryanshu-Nabheet/CodeX#readme",
   "engines": {
     "vscode": "^1.103.0"
   },

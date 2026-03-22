@@ -228,3 +228,42 @@ class LoadingGenerateCommitMessageAction extends Action2 {
 registerAction2(GenerateCommitMessageAction)
 registerAction2(LoadingGenerateCommitMessageAction)
 registerSingleton(IGenerateCommitMessageService, GenerateCommitMessageService, InstantiationType.Delayed)
+
+class CodexSCMService implements ICodexSCMService {
+	readonly _serviceBrand: undefined;
+	private _proxy: ICodexSCMService;
+
+	constructor(@IMainProcessService mainProcessService: IMainProcessService) {
+		this._proxy = ProxyChannel.toService<ICodexSCMService>(mainProcessService.getChannel('codex-channel-scm'));
+	}
+
+	gitStat(path: string): Promise<string> {
+		return this._proxy.gitStat(path);
+	}
+
+	gitSampledDiffs(path: string): Promise<string> {
+		return this._proxy.gitSampledDiffs(path);
+	}
+
+	gitBranch(path: string): Promise<string> {
+		return this._proxy.gitBranch(path);
+	}
+
+	gitLog(path: string): Promise<string> {
+		return this._proxy.gitLog(path);
+	}
+
+	gitBranches(path: string): Promise<string[]> {
+		return this._proxy.gitBranches(path);
+	}
+
+	gitRecentCommits(path: string, limit?: number): Promise<{ hash: string; message: string; }[]> {
+		return this._proxy.gitRecentCommits(path, limit);
+	}
+
+	gitShow(path: string, hash: string): Promise<string> {
+		return this._proxy.gitShow(path, hash);
+	}
+}
+
+registerSingleton(ICodexSCMService, CodexSCMService, InstantiationType.Eager);

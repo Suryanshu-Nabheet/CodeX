@@ -31,6 +31,32 @@ export interface ICodexSCMService {
 	 * @param path Path to the git repository
 	 */
 	gitLog(path: string): Promise<string>
+	/**
+	 * Get all git branches
+	 *
+	 * @param path Path to the git repository
+	 */
+	gitBranches(path: string): Promise<string[]>
+	/**
+	 * Get recent git commits
+	 *
+	 * @param path Path to the git repository
+	 * @param limit Maximum number of commits to return
+	 */
+	/**
+	 * Get recent git commits
+	 *
+	 * @param path Path to the git repository
+	 * @param limit Maximum number of commits to return
+	 */
+	gitRecentCommits(path: string, limit?: number): Promise<{ hash: string, message: string }[]>
+	/**
+	 * Get git show --stat for a specific commit
+	 *
+	 * @param path Path to the git repository
+	 * @param hash Commit hash
+	 */
+	gitShow(path: string, hash: string): Promise<string>
 }
 
 export const ICodexSCMService = createDecorator<ICodexSCMService>('codexSCMService')

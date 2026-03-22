@@ -40,9 +40,13 @@ const ModelSelectBox = ({ options, featureName, className }: { options: ModelOpt
 		getOptionDisplayName={(option) => option.selection.modelName}
 		getOptionDropdownName={(option) => option.selection.modelName}
 		getOptionDropdownDetail={(option) => option.selection.providerName}
+		getOptionGroupName={(option) => option.selection.providerName.toUpperCase()}
 		getOptionsEqual={(a, b) => optionsEqual([a], [b])}
 		className={className}
 		matchInputWidth={false}
+		fixedWidth={260}
+		dividedLayout={true}
+		maxHeight={featureName === 'Ctrl+K' ? 220 : 350}
 	/>
 }
 

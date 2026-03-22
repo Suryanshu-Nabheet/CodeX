@@ -13,6 +13,7 @@ import './sidebarPane.js'
 
 // register quick edit (Ctrl+K)
 import './quickEditActions.js'
+import './terminalEditActions.js'
 
 
 // register Autocomplete
@@ -36,6 +37,7 @@ import './convertToLLMMessageWorkbenchContrib.js'
 
 // tools
 import './terminalToolService.js'
+import './terminalEditService.js'
 import './toolsService.js'
 
 // register Thread History

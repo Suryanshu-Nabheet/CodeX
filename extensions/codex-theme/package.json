@@ -5,8 +5,9 @@
   "categories": [
     "Themes"
   ],
-  "version": "1.0.0",
-  "publisher": "codex-ide",
+  "version": "0.0.1",
+  "publisher": "Suryanshu-Nabheet",
+  "author": "Suryanshu Nabheet",
   "license": "MIT",
   "engines": {
     "vscode": "*"
@@ -42,6 +43,12 @@
         "label": "%codexHighContrastColorThemeLabel%",
         "uiTheme": "hc-black",
         "path": "./themes/codex_high_contrast.json"
+      },
+      {
+        "id": "CodeX Titan",
+        "label": "%codexTitanColorThemeLabel%",
+        "uiTheme": "vs-dark",
+        "path": "./themes/codex_titan.json"
       }
     ],
     "iconThemes": [
@@ -54,6 +61,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Suryanshu-Nabheet/codex.git"
+    "url": "https://github.com/Suryanshu-Nabheet/CodeX.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Suryanshu-Nabheet/CodeX/issues"
   }
 }

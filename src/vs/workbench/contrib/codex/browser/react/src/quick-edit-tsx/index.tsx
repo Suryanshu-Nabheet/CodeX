@@ -7,6 +7,11 @@ import { mountFnGenerator } from '../util/mountFnGenerator.js'
 import { QuickEdit } from './QuickEdit.js'
 
 
+import { TerminalQuickEdit } from './TerminalQuickEdit.js'
+
+
 export const mountCtrlK = mountFnGenerator(QuickEdit)
+export const mountTerminalCtrlK = mountFnGenerator(TerminalQuickEdit)
+
 
 

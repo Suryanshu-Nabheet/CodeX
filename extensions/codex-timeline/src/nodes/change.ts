@@ -9,10 +9,10 @@ export type ChangeNodeOptions = {
 };
 
 const statuses = {
-  [Status.INDEX_ADDED]: { letter: "💚", name: "Added" },
-  [Status.MODIFIED]: { letter: "💛", name: "Modified" },
-  [Status.DELETED]: { letter: "💔", name: "Deleted" },
-  [Status.INDEX_RENAMED]: { letter: "💙", name: "Renamed" },
+  [Status.INDEX_ADDED]: { letter: "🟢", name: "Added" },
+  [Status.MODIFIED]: { letter: "🟡", name: "Modified" },
+  [Status.DELETED]: { letter: "🔴", name: "Deleted" },
+  [Status.INDEX_RENAMED]: { letter: "🔵", name: "Renamed" },
 };
 
 export class ChangeNode extends BaseNode {

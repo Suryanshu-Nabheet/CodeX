@@ -9,7 +9,7 @@ import React, { ButtonHTMLAttributes, FormEvent, FormHTMLAttributes, Fragment, K
 import { useAccessor, useChatThreadsState, useChatThreadsStreamState, useSettingsState, useActiveURI, useCommandBarState, useFullChatThreadsStreamState } from '../util/services.js';
 import { ScrollType } from '../../../../../../../editor/common/editorCommon.js';
 
-import { ChatMarkdownRender, ChatMessageLocation, getApplyBoxId } from '../markdown/ChatMarkdownRender.js';
+import { ChatMarkdownRender, ChatMessageLocation, getApplyBoxId, PlanBlock } from '../markdown/ChatMarkdownRender.js';
 import { URI } from '../../../../../../../base/common/uri.js';
 import { IDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { ErrorDisplay } from './ErrorDisplay.js';
@@ -22,7 +22,7 @@ import { ChatMode, displayInfoOfProviderName, FeatureName, isFeatureNameDisabled
 import { ICommandService } from '../../../../../../../platform/commands/common/commands.js';
 import { WarningBox } from '../codex-settings-tsx/WarningBox.js';
 import { getModelCapabilities, getIsReasoningEnabledState } from '../../../../common/modelCapabilities.js';
-import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CircleEllipsis, Folder, ALargeSmall, TypeOutline, Text } from 'lucide-react';
+import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CircleEllipsis, Folder, ALargeSmall, TypeOutline, FileText, GitBranch, History, Terminal, AtSign } from 'lucide-react';
 import { ChatMessage, CheckpointEntry, StagingSelectionItem, ToolMessage } from '../../../../common/chatThreadServiceTypes.js';
 import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, BuiltinToolName, ToolName, LintErrorItem, ToolApprovalType, toolApprovalTypes } from '../../../../common/toolsServiceTypes.js';
 import { CopyButton, EditToolAcceptRejectButtonsHTML, IconShell1, JumpToFileButton, JumpToTerminalButton, StatusIndicator, StatusIndicatorForApplyButton, useApplyStreamState, useEditToolStreamState } from '../markdown/ApplyBlockHoverButtons.js';
@@ -97,6 +97,47 @@ const IconSquare = ({ size, className = '' }: { size: number, className?: string
 	);
 };
 
+const extractPlanFromThread = (messages: ChatMessage[], displayContentSoFar?: string, reasoningSoFar?: string) => {
+	const findLatestInStr = (str: string | undefined | null) => {
+		if (!str) return null
+		const startTag = /<plan>/gi
+		const endTag = /<\/plan>/gi
+
+		let lastMatch: RegExpExecArray | null = null
+		let match: RegExpExecArray | null
+		while ((match = startTag.exec(str)) !== null) {
+			lastMatch = match
+		}
+
+		if (!lastMatch) return null
+
+		const lastStartIndex = lastMatch.index
+		const contentAfterStart = str.substring(lastStartIndex + lastMatch[0].length)
+
+		const endMatch = endTag.exec(contentAfterStart)
+		if (endMatch) {
+			return contentAfterStart.substring(0, endMatch.index).trim()
+		}
+		// Partial plan (streaming)
+		return contentAfterStart.trim()
+	}
+
+	const fromDisplay = displayContentSoFar ? findLatestInStr(displayContentSoFar) : null
+	if (fromDisplay) return fromDisplay
+
+	const fromReasoning = reasoningSoFar ? findLatestInStr(reasoningSoFar) : null
+	if (fromReasoning) return fromReasoning
+
+	for (let i = messages.length - 1; i >= 0; i--) {
+		const msg = messages[i]
+		if (msg.role === 'assistant') {
+			const plan = (msg.displayContent && findLatestInStr(msg.displayContent)) || (msg.reasoning && findLatestInStr(msg.reasoning))
+			if (plan) return plan
+		}
+	}
+	return null;
+}
+
 
 export const IconWarning = ({ size, className = '' }: { size: number, className?: string }) => {
 	return (
@@ -170,9 +211,9 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 
 	if (canTurnOffReasoning && !reasoningBudgetSlider) { // if it's just a on/off toggle without a power slider
 		return <div className='flex items-center gap-x-2'>
-			<span className='text-codex-fg-3 text-xs pointer-events-none inline-block w-10 pr-1'>Thinking</span>
+			<span className='text-codex-fg-3 text-[10px] uppercase tracking-wider font-semibold pointer-events-none pr-1'>Thinking</span>
 			<CodexSwitch
-				size='xxs'
+				size='xs'
 				value={isReasoningEnabled}
 				onChange={(newVal) => {
 					const isOff = canTurnOffReasoning && !newVal
@@ -194,7 +235,7 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 			: valueIfOff
 
 		return <div className='flex items-center gap-x-2'>
-			<span className='text-codex-fg-3 text-xs pointer-events-none inline-block w-10 pr-1'>Thinking</span>
+			<span className='text-codex-fg-3 text-[10px] uppercase tracking-wider font-semibold pointer-events-none pr-1'>Thinking</span>
 			<CodexSlider
 				width={50}
 				size='xs'
@@ -207,7 +248,7 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 					codexSettingsService.setOptionsOfModelSelection(featureName, modelSelection.providerName, modelSelection.modelName, { reasoningEnabled: !isOff, reasoningBudget: newVal })
 				}}
 			/>
-			<span className='text-codex-fg-3 text-xs pointer-events-none'>{isReasoningEnabled ? `${value} tokens` : 'Thinking disabled'}</span>
+			<span className='text-codex-fg-3 text-[10px] opacity-70 pointer-events-none'>{isReasoningEnabled ? `${value} tokens` : 'Disabled'}</span>
 		</div>
 	}
 
@@ -225,7 +266,7 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 		const currentEffortCapitalized = currentEffort.charAt(0).toUpperCase() + currentEffort.slice(1, Infinity)
 
 		return <div className='flex items-center gap-x-2'>
-			<span className='text-codex-fg-3 text-xs pointer-events-none inline-block w-10 pr-1'>Thinking</span>
+			<span className='text-codex-fg-3 text-[10px] uppercase tracking-wider font-semibold pointer-events-none pr-1'>Thinking</span>
 			<CodexSlider
 				width={30}
 				size='xs'
@@ -238,7 +279,7 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 					codexSettingsService.setOptionsOfModelSelection(featureName, modelSelection.providerName, modelSelection.modelName, { reasoningEnabled: !isOff, reasoningEffort: values[newVal] ?? undefined })
 				}}
 			/>
-			<span className='text-codex-fg-3 text-xs pointer-events-none'>{isReasoningEnabled ? `${currentEffortCapitalized}` : 'Thinking disabled'}</span>
+			<span className='text-codex-fg-3 text-[10px] opacity-70 pointer-events-none'>{isReasoningEnabled ? `${currentEffortCapitalized}` : 'Disabled'}</span>
 		</div>
 	}
 
@@ -279,7 +320,6 @@ const ChatModeDropdown = ({ className }: { className: string }) => {
 		onChangeOption={onChangeOption}
 		getOptionDisplayName={(val) => nameOfChatMode[val]}
 		getOptionDropdownName={(val) => nameOfChatMode[val]}
-		getOptionDropdownDetail={(val) => detailOfChatMode[val]}
 		getOptionsEqual={(a, b) => a === b}
 	/>
 
@@ -317,6 +357,9 @@ interface CodexChatAreaProps {
 	onClose?: () => void;
 
 	featureName: FeatureName;
+	compact?: boolean;
+
+	onMentionClick?: () => void;
 }
 
 export const CodexChatArea: React.FC<CodexChatAreaProps> = ({
@@ -336,13 +379,15 @@ export const CodexChatArea: React.FC<CodexChatAreaProps> = ({
 	setSelections,
 	featureName,
 	loadingIcon,
+	compact = false,
+	onMentionClick,
 }) => {
 	return (
 		<div
 			ref={divRef}
 			className={`
-				gap-x-1
-                flex flex-col p-2 relative input text-left shrink-0
+				gap-y-1
+                flex flex-col ${compact ? 'p-1.5 px-2.5' : 'p-2'} relative input text-left shrink-0
                 rounded-md
                 bg-codex-bg-1
 				transition-all duration-200
@@ -361,6 +406,7 @@ export const CodexChatArea: React.FC<CodexChatAreaProps> = ({
 					selections={selections}
 					setSelections={setSelections}
 					showProspectiveSelections={showProspectiveSelections}
+					onMentionClick={onMentionClick}
 				/>
 			)}
 
@@ -381,19 +427,19 @@ export const CodexChatArea: React.FC<CodexChatAreaProps> = ({
 			</div>
 
 			{/* Bottom row */}
-			<div className='flex flex-row justify-between items-end gap-1'>
+			<div className={`flex flex-row justify-between items-end ${compact ? 'gap-2' : 'gap-1'}`}>
 				{showModelDropdown && (
-					<div className='flex flex-col gap-y-1'>
-						<ReasoningOptionSlider featureName={featureName} />
+					<div className={`flex flex-col ${compact ? 'gap-y-0.5' : 'gap-y-1'}`}>
+						{!compact && <ReasoningOptionSlider featureName={featureName} />}
 
-						<div className='flex items-center flex-wrap gap-x-2 gap-y-1 text-nowrap '>
-							{featureName === 'Chat' && <ChatModeDropdown className='text-xs text-codex-fg-3 bg-codex-bg-1 border border-codex-border-2 rounded py-0.5 px-1' />}
-							<ModelDropdown featureName={featureName} className='text-xs text-codex-fg-3 bg-codex-bg-1 rounded' />
+						<div className='flex items-center flex-wrap gap-x-1.5 gap-y-1 text-nowrap mt-1'>
+							{featureName === 'Chat' && <ChatModeDropdown className='text-xs text-codex-fg-3 bg-zinc-500/5 border border-codex-border-2 rounded-lg py-0.5 px-2 h-6' />}
+							<ModelDropdown featureName={featureName} className='text-xs text-codex-fg-3 bg-transparent border border-transparent rounded-lg py-0.5 px-1.5 h-6' />
 						</div>
 					</div>
 				)}
 
-				<div className="flex items-center gap-2">
+				<div className={`flex items-center ${compact ? 'gap-1.5' : 'gap-2'}`}>
 
 					{isStreaming && loadingIcon}
 
@@ -578,9 +624,9 @@ export const codexOpenFileFn = (
 
 
 export const SelectedFiles = (
-	{ type, selections, setSelections, showProspectiveSelections, messageIdx, }:
-		| { type: 'past', selections: StagingSelectionItem[]; setSelections?: undefined, showProspectiveSelections?: undefined, messageIdx: number, }
-		| { type: 'staging', selections: StagingSelectionItem[]; setSelections: ((newSelections: StagingSelectionItem[]) => void), showProspectiveSelections?: boolean, messageIdx?: number }
+	{ type, selections, setSelections, showProspectiveSelections, messageIdx, onMentionClick }:
+		| { type: 'past', selections: StagingSelectionItem[]; setSelections?: undefined, showProspectiveSelections?: undefined, messageIdx: number, onMentionClick?: undefined }
+		| { type: 'staging', selections: StagingSelectionItem[]; setSelections: ((newSelections: StagingSelectionItem[]) => void), showProspectiveSelections?: boolean, messageIdx?: number, onMentionClick?: () => void }
 ) => {
 
 	const accessor = useAccessor()
@@ -637,12 +683,23 @@ export const SelectedFiles = (
 
 	const allSelections = [...selections, ...prospectiveSelections]
 
-	if (allSelections.length === 0) {
+	if (allSelections.length === 0 && (type !== 'staging' || !onMentionClick)) {
 		return null
 	}
 
 	return (
 		<div className='flex items-center flex-wrap text-left relative gap-x-0.5 gap-y-1 pb-0.5'>
+
+			{type === 'staging' && onMentionClick && (
+				<button
+					className="text-codex-fg-3 hover:text-codex-fg-1 p-0.5 rounded-sm hover:bg-zinc-700/10 dark:hover:bg-zinc-300/10 transition-colors border border-codex-border-2 flex items-center justify-center mr-0.5"
+					onClick={onMentionClick}
+					title="Mention (@)"
+					type="button"
+				>
+					<AtSign size={12} />
+				</button>
+			)}
 
 			{allSelections.map((selection, i) => {
 
@@ -650,14 +707,20 @@ export const SelectedFiles = (
 
 				const thisKey = selection.type === 'CodeSelection' ? selection.type + selection.language + selection.range + selection.state.wasAddedAsCurrentFile + selection.uri.fsPath
 					: selection.type === 'File' ? selection.type + selection.language + selection.state.wasAddedAsCurrentFile + selection.uri.fsPath
-						: selection.type === 'Folder' ? selection.type + selection.language + selection.state + selection.uri.fsPath
-							: i
+						: selection.type === 'Folder' ? selection.type + selection.uri.fsPath
+							: selection.type === 'GitCommit' ? selection.hash
+								: selection.type === 'GitBranch' ? selection.name
+									: selection.type === 'TerminalPane' ? selection.id
+										: i
 
 				const SelectionIcon = (
 					selection.type === 'File' ? File
-						: selection.type === 'Folder' ? Folder
-							: selection.type === 'CodeSelection' ? Text
-								: (undefined as never)
+						: selection.type === 'CodeSelection' ? FileText
+							: selection.type === 'GitCommit' ? History
+								: selection.type === 'GitBranch' ? GitBranch
+									: selection.type === 'TerminalPane' ? Terminal
+										: selection.type === 'Folder' ? Folder
+											: File
 				)
 
 				return <div // container for summarybox and code
@@ -667,7 +730,12 @@ export const SelectedFiles = (
 					{/* tooltip for file path */}
 					<span className="truncate overflow-hidden text-ellipsis"
 						data-tooltip-id='codex-tooltip'
-						data-tooltip-content={getRelative(selection.uri, accessor)}
+						data-tooltip-content={
+							selection.type === 'GitCommit' ? `Commit: ${selection.message}` :
+								selection.type === 'GitBranch' ? `Branch: ${selection.name}` :
+									selection.type === 'TerminalPane' ? `Terminal: ${selection.name}` :
+										getRelative(selection.uri, accessor)
+						}
 						data-tooltip-place='top'
 						data-tooltip-delay-show={3000}
 					>
@@ -713,13 +781,26 @@ export const SelectedFiles = (
 								else if (selection.type === 'Folder') {
 									// TODO!!! reveal in tree
 								}
+								else if (selection.type === 'GitCommit') {
+									// TODO: show commit diff
+								}
+								else if (selection.type === 'GitBranch') {
+									// TODO: switch branch? or show branch info
+								}
+								else if (selection.type === 'TerminalPane') {
+									const terminalService = accessor.get('ITerminalToolService');
+									terminalService.focusPersistentTerminal(selection.id);
+								}
 							}}
 						>
 							{<SelectionIcon size={10} />}
 
 							{ // file name and range
-								getBasename(selection.uri.fsPath)
-								+ (selection.type === 'CodeSelection' ? ` (${selection.range[0]}-${selection.range[1]})` : '')
+								selection.type === 'GitCommit' ? selection.hash
+									: selection.type === 'GitBranch' ? selection.name
+										: selection.type === 'TerminalPane' ? selection.name
+											: getBasename(selection.uri.fsPath)
+											+ (selection.type === 'CodeSelection' ? ` (${selection.range[0]}-${selection.range[1]})` : '')
 							}
 
 							{selection.type === 'File' && selection.state.wasAddedAsCurrentFile && messageIdx === undefined && currentURI?.fsPath === selection.uri.fsPath ?
@@ -1337,6 +1418,13 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 		messageIdx: messageIdx,
 	}
 
+	const planAlreadyExistsInPreviousMessages = useMemo(() => {
+		const prev = thread.messages.slice(0, messageIdx)
+		return prev.some(m => m.role === 'assistant' && ((m.displayContent && /<plan>/i.test(m.displayContent)) || (m.reasoning && /<plan>/i.test(m.reasoning))))
+	}, [thread.messages, messageIdx])
+
+	const hidePlanInBubble = isCommitted || planAlreadyExistsInPreviousMessages
+
 	const isEmpty = !chatMessage.displayContent && !chatMessage.reasoning
 	if (isEmpty) return null
 
@@ -1351,6 +1439,8 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 							chatMessageLocation={chatMessageLocation}
 							isApplyEnabled={false}
 							isLinkDetectionEnabled={true}
+							isStreaming={!isCommitted}
+							isUpdate={planAlreadyExistsInPreviousMessages}
 						/>
 					</SmallProseWrapper>
 				</ReasoningWrapper>
@@ -1366,6 +1456,8 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 						chatMessageLocation={chatMessageLocation}
 						isApplyEnabled={true}
 						isLinkDetectionEnabled={true}
+						isStreaming={!isCommitted}
+						isUpdate={planAlreadyExistsInPreviousMessages}
 					/>
 				</ProseWrapper>
 			</div>
@@ -1420,6 +1512,10 @@ const titleOfBuiltinToolName = {
 
 	'read_lint_errors': { done: `Read lint errors`, proposed: 'Read lint errors', running: loadingTitleWrapper('Reading lint errors') },
 	'search_in_file': { done: 'Searched in file', proposed: 'Search in file', running: loadingTitleWrapper('Searching in file') },
+	'git_status': { done: 'Checked git status', proposed: 'Check git status', running: loadingTitleWrapper('Checking git status') },
+	'git_log': { done: 'Read git log', proposed: 'Read git log', running: loadingTitleWrapper('Reading git log') },
+	'git_show': { done: 'Viewed commit', proposed: 'View commit', running: loadingTitleWrapper('Viewing commit') },
+	'git_diff': { done: 'Viewed git diff', proposed: 'View git diff', running: loadingTitleWrapper('Viewing git diff') },
 } as const satisfies Record<BuiltinToolName, { done: any, proposed: any, running: any }>
 
 
@@ -1559,7 +1655,34 @@ const toolNameToDesc = (toolName: BuiltinToolName, _toolParams: BuiltinToolCallP
 				desc1: getBasename(toolParams.uri.fsPath),
 				desc1Info: getRelative(toolParams.uri, accessor),
 			}
-		}
+		},
+		'git_status': () => {
+			const toolParams = _toolParams as BuiltinToolCallParams['git_status']
+			return {
+				desc1: toolParams.cwd ? `in ${toolParams.cwd}` : '',
+			}
+		},
+		'git_log': () => {
+			const toolParams = _toolParams as BuiltinToolCallParams['git_log']
+			return {
+				desc1: toolParams.cwd ? `in ${toolParams.cwd}` : '',
+				desc2: `limit ${toolParams.limit}`
+			}
+		},
+		'git_show': () => {
+			const toolParams = _toolParams as BuiltinToolCallParams['git_show']
+			return {
+				desc1: toolParams.hash,
+				desc1Info: toolParams.cwd ? `in ${toolParams.cwd}` : '',
+			}
+		},
+		'git_diff': () => {
+			const toolParams = _toolParams as BuiltinToolCallParams['git_diff']
+			return {
+				desc1: `${toolParams.base}..${toolParams.head}`,
+				desc1Info: toolParams.cwd ? `in ${toolParams.cwd}` : '',
+			}
+		},
 	}
 
 	try {
@@ -2445,6 +2568,78 @@ const builtinToolNameToComponent: { [T in BuiltinToolName]: { resultWrapper: Res
 			return <ToolHeaderWrapper {...componentParams} />
 		},
 	},
+	'git_status': {
+		resultWrapper: ({ toolMessage }) => {
+			const accessor = useAccessor()
+			const title = getTitle(toolMessage)
+			const { desc1, desc1Info } = toolNameToDesc(toolMessage.name, toolMessage.params, accessor)
+			if (toolMessage.type === 'tool_request') return null
+			if (toolMessage.type === 'running_now') return null
+			const componentParams: ToolHeaderParams = { title, desc1, desc1Info, isRejected: toolMessage.type === 'rejected' }
+			if (toolMessage.type === 'success') {
+				componentParams.children = <ToolChildrenWrapper>
+					<SmallProseWrapper>
+						<ChatMarkdownRender string={`\`\`\`\n${toolMessage.result.status}\n\`\`\``} isApplyEnabled={false} isLinkDetectionEnabled={true} chatMessageLocation={undefined} />
+					</SmallProseWrapper>
+				</ToolChildrenWrapper>
+			}
+			return <ToolHeaderWrapper {...componentParams} />
+		}
+	},
+	'git_log': {
+		resultWrapper: ({ toolMessage }) => {
+			const accessor = useAccessor()
+			const title = getTitle(toolMessage)
+			const { desc1, desc1Info } = toolNameToDesc(toolMessage.name, toolMessage.params, accessor)
+			if (toolMessage.type === 'tool_request') return null
+			if (toolMessage.type === 'running_now') return null
+			const componentParams: ToolHeaderParams = { title, desc1, desc1Info, isRejected: toolMessage.type === 'rejected' }
+			if (toolMessage.type === 'success') {
+				componentParams.children = <ToolChildrenWrapper>
+					<SmallProseWrapper>
+						<ChatMarkdownRender string={`\`\`\`\n${toolMessage.result.log}\n\`\`\``} isApplyEnabled={false} isLinkDetectionEnabled={true} chatMessageLocation={undefined} />
+					</SmallProseWrapper>
+				</ToolChildrenWrapper>
+			}
+			return <ToolHeaderWrapper {...componentParams} />
+		}
+	},
+	'git_show': {
+		resultWrapper: ({ toolMessage }) => {
+			const accessor = useAccessor()
+			const title = getTitle(toolMessage)
+			const { desc1, desc1Info } = toolNameToDesc(toolMessage.name, toolMessage.params, accessor)
+			if (toolMessage.type === 'tool_request') return null
+			if (toolMessage.type === 'running_now') return null
+			const componentParams: ToolHeaderParams = { title, desc1, desc1Info, isRejected: toolMessage.type === 'rejected' }
+			if (toolMessage.type === 'success') {
+				componentParams.children = <ToolChildrenWrapper>
+					<SmallProseWrapper>
+						<ChatMarkdownRender string={`\`\`\`diff\n${toolMessage.result.details}\n\`\`\``} isApplyEnabled={false} isLinkDetectionEnabled={true} chatMessageLocation={undefined} />
+					</SmallProseWrapper>
+				</ToolChildrenWrapper>
+			}
+			return <ToolHeaderWrapper {...componentParams} />
+		}
+	},
+	'git_diff': {
+		resultWrapper: ({ toolMessage }) => {
+			const accessor = useAccessor()
+			const title = getTitle(toolMessage)
+			const { desc1, desc1Info } = toolNameToDesc(toolMessage.name, toolMessage.params, accessor)
+			if (toolMessage.type === 'tool_request') return null
+			if (toolMessage.type === 'running_now') return null
+			const componentParams: ToolHeaderParams = { title, desc1, desc1Info, isRejected: toolMessage.type === 'rejected' }
+			if (toolMessage.type === 'success') {
+				componentParams.children = <ToolChildrenWrapper>
+					<SmallProseWrapper>
+						<ChatMarkdownRender string={`\`\`\`diff\n${toolMessage.result.diff}\n\`\`\``} isApplyEnabled={false} isLinkDetectionEnabled={true} chatMessageLocation={undefined} />
+					</SmallProseWrapper>
+				</ToolChildrenWrapper>
+			}
+			return <ToolHeaderWrapper {...componentParams} />
+		}
+	},
 };
 
 
@@ -2579,7 +2774,7 @@ const _ChatBubble = ({ threadId, chatMessage, currCheckpointIdx, isCommitted, me
 
 }
 
-const CommandBarInChat = () => {
+const CommandBarInChat = ({ hasPlanAbove }: { hasPlanAbove?: boolean }) => {
 	const { stateOfURI: commandBarStateOfURI, sortedURIs: sortedCommandBarURIs } = useCommandBarState()
 	const numFilesChanged = sortedCommandBarURIs.length
 
@@ -2801,11 +2996,11 @@ const CommandBarInChat = () => {
 	return (
 		<>
 			{/* file details */}
-			<div className='px-2'>
+			<div className=''>
 				<div
 					className={`
 						select-none
-						flex w-full rounded-t-lg bg-codex-bg-3
+						flex w-full ${hasPlanAbove ? 'border-t' : 'rounded-t-lg'} border-l border-r border-zinc-300/10 bg-codex-bg-3
 						text-codex-fg-3 text-xs text-nowrap
 
 						overflow-hidden transition-all duration-200 ease-in-out
@@ -2819,9 +3014,11 @@ const CommandBarInChat = () => {
 			<div
 				className={`
 					select-none
-					flex w-full rounded-t-lg bg-codex-bg-3
+					flex w-full bg-codex-bg-3
 					text-codex-fg-3 text-xs text-nowrap
-					border-t border-l border-r border-zinc-300/10
+					border border-zinc-300/10
+					${!hasPlanAbove && !isFileDetailsOpened ? 'rounded-t-lg' : ''}
+					rounded-b-lg
 
 					px-2 py-1
 					justify-between
@@ -2918,6 +3115,65 @@ export const SidebarChat = () => {
 	const initVal = ''
 	const [instructionsAreEmpty, setInstructionsAreEmpty] = useState(!initVal)
 
+	const { uri: activeURI } = useActiveURI()
+	const [lastAutoTaggedPath, setLastAutoTaggedPath] = useState<string | null>(null)
+
+	// handle automatic tagging of currently open file
+	useEffect(() => {
+		if (!activeURI) {
+			// if no active file, ensure no auto-tags are left
+			const selectionsWithoutAuto = selections.filter(s => {
+				if (s.type === 'File' || s.type === 'CodeSelection') {
+					return !s.state.wasAddedAsCurrentFile
+				}
+				return true
+			})
+			if (selections.length !== selectionsWithoutAuto.length) {
+				setSelections(selectionsWithoutAuto)
+			}
+			setLastAutoTaggedPath(null)
+			return
+		}
+
+		if (activeURI.fsPath !== lastAutoTaggedPath) {
+			// user switched files, let's update auto tag
+			const selectionsWithoutAuto = selections.filter(s => {
+				if (s.type === 'File' || s.type === 'CodeSelection') {
+					return !s.state.wasAddedAsCurrentFile
+				}
+				return true
+			})
+
+			// check if new file is already tagged permanently
+			const isAlreadyTaggedPermanently = selectionsWithoutAuto.some(s =>
+				(s.type === 'File' || s.type === 'CodeSelection') && s.uri.fsPath === activeURI.fsPath
+			)
+
+			if (isAlreadyTaggedPermanently) {
+				// if it was already tagged as current, remove it
+				if (selections.length !== selectionsWithoutAuto.length) {
+					setSelections(selectionsWithoutAuto)
+				}
+			} else {
+				// add auto tag for current file
+				const modelRefService = accessor.get('ICodexModelService')
+				modelRefService.getModelSafe(activeURI).then(ref => {
+					if (ref.model) {
+						const language = ref.model.getLanguageId()
+						const currentFileSelection: StagingSelectionItem = {
+							type: 'File',
+							uri: activeURI,
+							language,
+							state: { wasAddedAsCurrentFile: true }
+						}
+						setSelections([...selectionsWithoutAuto, currentFileSelection])
+					}
+				})
+			}
+			setLastAutoTaggedPath(activeURI.fsPath)
+		}
+	}, [activeURI, selections, setSelections, accessor, lastAutoTaggedPath])
+
 	const isDisabled = instructionsAreEmpty || !!isFeatureNameDisabled('Chat', settingsState)
 
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -2939,6 +3195,7 @@ export const SidebarChat = () => {
 		}
 
 		setSelections([]) // clear staging
+		setLastAutoTaggedPath(null) // reset auto-tag path
 		textAreaFnsRef.current?.setValue('')
 		textAreaRef.current?.focus() // focus input after submit
 
@@ -3005,6 +3262,8 @@ export const SidebarChat = () => {
 			threadId={threadId}
 			_scrollToBottom={null}
 		/> : null
+
+	const latestPlan = useMemo(() => extractPlanFromThread(previousMessages, displayContentSoFar, reasoningSoFar), [previousMessages, displayContentSoFar, reasoningSoFar])
 
 
 	// the tool currently being generated
@@ -3078,6 +3337,7 @@ export const SidebarChat = () => {
 		// showProspectiveSelections={previousMessagesHTML.length === 0}
 		selections={selections}
 		setSelections={setSelections}
+		onMentionClick={() => { textAreaFnsRef.current?.openMentionMenu() }}
 		onClickAnywhere={() => { textAreaRef.current?.focus() }}
 	>
 		<CodexInputBox2
@@ -3117,8 +3377,9 @@ export const SidebarChat = () => {
 
 
 	const threadPageInput = <div key={'input' + chatThreadsState.currentThreadId}>
-		<div className='px-4'>
-			<CommandBarInChat />
+		<div className='flex flex-col px-2 w-full overflow-y-auto'>
+			{latestPlan && <PlanBlock content={latestPlan} isStreaming={!!isRunning} className='rounded-b-none border-b-0' />}
+			<CommandBarInChat hasPlanAbove={!!latestPlan} />
 		</div>
 		<div className='px-2 pb-2'>
 			{inputChatArea}

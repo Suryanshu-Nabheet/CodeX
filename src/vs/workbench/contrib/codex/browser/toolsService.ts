@@ -19,6 +19,7 @@ import { RawToolParamsObj } from '../common/sendLLMMessageTypes.js'
 import { MAX_CHILDREN_URIs_PAGE, MAX_FILE_CHARS_PAGE, MAX_TERMINAL_BG_COMMAND_TIME, MAX_TERMINAL_INACTIVE_TIME } from '../common/prompt/prompts.js'
 import { ICodexSettingsService } from '../common/codexSettingsService.js'
 import { generateUuid } from '../../../../base/common/uuid.js'
+import { ICodexSCMService } from '../common/codexSCMTypes.js'
 
 
 // tool use for AI
@@ -153,6 +154,7 @@ export class ToolsService implements IToolsService {
 		@IDirectoryStrService private readonly directoryStrService: IDirectoryStrService,
 		@IMarkerService private readonly markerService: IMarkerService,
 		@ICodexSettingsService private readonly codexSettingsService: ICodexSettingsService,
+		@ICodexSCMService private readonly codexSCMService: ICodexSCMService,
 	) {
 		const queryBuilder = instantiationService.createInstance(QueryBuilder);
 
@@ -288,6 +290,30 @@ export class ToolsService implements IToolsService {
 				const { persistent_terminal_id: terminalIdUnknown } = params;
 				const persistentTerminalId = validateProposedTerminalId(terminalIdUnknown);
 				return { persistentTerminalId };
+			},
+			git_status: (params: RawToolParamsObj) => {
+				const { cwd: cwdUnknown } = params;
+				const cwd = validateOptionalStr('cwd', cwdUnknown);
+				return { cwd };
+			},
+			git_log: (params: RawToolParamsObj) => {
+				const { cwd: cwdUnknown, limit: limitUnknown } = params;
+				const cwd = validateOptionalStr('cwd', cwdUnknown);
+				const limit = validateNumber(limitUnknown, { default: 20 }) ?? 20;
+				return { cwd, limit };
+			},
+			git_show: (params: RawToolParamsObj) => {
+				const { cwd: cwdUnknown, hash: hashUnknown } = params;
+				const cwd = validateOptionalStr('cwd', cwdUnknown);
+				const hash = validateStr('hash', hashUnknown);
+				return { cwd, hash };
+			},
+			git_diff: (params: RawToolParamsObj) => {
+				const { cwd: cwdUnknown, base: baseUnknown, head: headUnknown } = params;
+				const cwd = validateOptionalStr('cwd', cwdUnknown);
+				const base = validateStr('base', baseUnknown);
+				const head = validateStr('head', headUnknown);
+				return { cwd, base, head };
 			},
 
 		}
@@ -461,6 +487,31 @@ export class ToolsService implements IToolsService {
 				await this.terminalToolService.killPersistentTerminal(persistentTerminalId)
 				return { result: {} }
 			},
+			git_status: async ({ cwd }) => {
+				const path = cwd || workspaceContextService.getWorkspace().folders[0]?.uri.fsPath;
+				if (!path) throw new Error('No workspace folder found.');
+				const status = await this.codexSCMService.gitStat(path);
+				return { result: { status } };
+			},
+			git_log: async ({ cwd, limit }) => {
+				const path = cwd || workspaceContextService.getWorkspace().folders[0]?.uri.fsPath;
+				if (!path) throw new Error('No workspace folder found.');
+				const log = await this.codexSCMService.gitLog(path);
+				return { result: { log } };
+			},
+			git_show: async ({ cwd, hash }) => {
+				const path = cwd || workspaceContextService.getWorkspace().folders[0]?.uri.fsPath;
+				if (!path) throw new Error('No workspace folder found.');
+				const details = await this.codexSCMService.gitShow(path, hash);
+				return { result: { details } };
+			},
+			git_diff: async ({ cwd, base, head }) => {
+				const path = cwd || workspaceContextService.getWorkspace().folders[0]?.uri.fsPath;
+				if (!path) throw new Error('No workspace folder found.');
+				const { resPromise } = await this.terminalToolService.runCommand(`git diff ${base} ${head}`, { type: 'temporary', cwd: path, terminalId: generateUuid() });
+				const { result } = await resPromise;
+				return { result: { diff: result } };
+			},
 		}
 
 
@@ -563,6 +614,18 @@ export class ToolsService implements IToolsService {
 			},
 			kill_persistent_terminal: (params, _result) => {
 				return `Successfully closed terminal "${params.persistentTerminalId}".`;
+			},
+			git_status: (_params, result) => {
+				return result.status;
+			},
+			git_log: (_params, result) => {
+				return result.log;
+			},
+			git_show: (_params, result) => {
+				return result.details;
+			},
+			git_diff: (_params, result) => {
+				return result.diff;
 			},
 		}
 

@@ -86,6 +86,19 @@ export type StagingSelectionItem = {
 	uri: URI;
 	language?: undefined;
 	state?: undefined;
+} | {
+	type: 'GitCommit';
+	hash: string;
+	message: string;
+	uri?: URI;
+} | {
+	type: 'GitBranch';
+	name: string;
+	uri?: URI;
+} | {
+	type: 'TerminalPane';
+	id: string;
+	name: string;
 }
 
 

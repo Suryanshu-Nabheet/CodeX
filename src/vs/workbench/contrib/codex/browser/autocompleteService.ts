@@ -534,7 +534,7 @@ type CompletionOptions = {
 	llmSuffix: string,
 	stopTokens: string[],
 }
-const getCompletionOptions = (prefixAndSuffix: PrefixAndSuffixInfo, relevantContext: string, justAcceptedAutocompletion: boolean): CompletionOptions => {
+const getCompletionOptions = (prefixAndSuffix: PrefixAndSuffixInfo, relevantContext: string, justAcceptedAutocompletion: boolean, uri: string): CompletionOptions => {
 
 	let { prefix, suffix, prefixToTheLeftOfCursor, suffixToTheRightOfCursor, suffixLines, prefixLines } = prefixAndSuffix
 
@@ -555,12 +555,12 @@ const getCompletionOptions = (prefixAndSuffix: PrefixAndSuffixInfo, relevantCont
 	// We use a clearly marked reference block that keeps the FIM model's attention on the actual code prefix.
 	let contextBlock = '';
 	if (relevantContext) {
-		contextBlock = `<REFERENTIAL_CONTEXT>\n${relevantContext}\n</REFERENTIAL_CONTEXT>\n\n`;
+		contextBlock = `/*\nARCHITECTURAL_CONTEXT (Active File: ${uri}):\n${relevantContext}\n\nSURGICAL_FIM_PROTOCOL:\n- OUTPUT ONLY THE CODE TO FILL THE MIDDLE.\n- ZERO EXPLANATIONS. ZERO COMMENTS. ZERO HALLUCINATIONS.\n*/\n\n`;
 	}
 
 	// Add context to prefix for better accuracy - we separate it with a newline to ensure the model
 	// treats the following 'prefix' as the actual file content to complete.
-	const llmPrefixWithContext = contextBlock + prefix
+	const llmPrefixWithContext = contextBlock + '/* BEGIN_FILE_PREFIX */\n' + prefix
 
 	// if we just accepted an autocompletion, predict a multiline completion starting on the next line
 	if (justAcceptedAutocompletion && isLineSuffixEmpty) {
@@ -570,7 +570,7 @@ const getCompletionOptions = (prefixAndSuffix: PrefixAndSuffixInfo, relevantCont
 			shouldGenerate: true,
 			llmPrefix: prefixWithNewline,
 			llmSuffix: suffix,
-			stopTokens: [`${_ln}${_ln}`] // double newlines
+			stopTokens: [`${_ln}${_ln}`, '/* ARCHITECTURAL_CONTEXT', '/* BEGIN_FILE_PREFIX'] // double newlines + protocol markers
 		}
 	}
 	// if the current line is empty, predict a single-line completion
@@ -580,7 +580,7 @@ const getCompletionOptions = (prefixAndSuffix: PrefixAndSuffixInfo, relevantCont
 			shouldGenerate: true,
 			llmPrefix: llmPrefixWithContext,
 			llmSuffix: suffix,
-			stopTokens: allLinebreakSymbols
+			stopTokens: [...allLinebreakSymbols, '/* ARCHITECTURAL_CONTEXT', '/* BEGIN_FILE_PREFIX']
 		}
 	}
 	// if suffix is 3 or fewer characters, attempt to complete the line ignorning it
@@ -592,7 +592,7 @@ const getCompletionOptions = (prefixAndSuffix: PrefixAndSuffixInfo, relevantCont
 			shouldGenerate: true,
 			llmPrefix: llmPrefixWithContext,
 			llmSuffix: suffixStringIgnoringThisLine,
-			stopTokens: allLinebreakSymbols
+			stopTokens: [...allLinebreakSymbols, '/* ARCHITECTURAL_CONTEXT', '/* BEGIN_FILE_PREFIX']
 		}
 	}
 	// else attempt to complete the middle of the line if there is a prefix (the completion looks bad if there is no prefix)
@@ -602,7 +602,7 @@ const getCompletionOptions = (prefixAndSuffix: PrefixAndSuffixInfo, relevantCont
 			shouldGenerate: true,
 			llmPrefix: llmPrefixWithContext,
 			llmSuffix: suffix,
-			stopTokens: allLinebreakSymbols
+			stopTokens: [...allLinebreakSymbols, '/* ARCHITECTURAL_CONTEXT', '/* BEGIN_FILE_PREFIX']
 		}
 	} else {
 		completionOptions = {
@@ -771,7 +771,7 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 		const relevantContext = (relevantSnippetsList.map((text: any) => `${text}`).join('\n-------------------------------\n') + '\n' + recentHistory).trim();
 		// console.log('@@---------------------\n' + relevantContext)
 
-		const { shouldGenerate, predictionType, llmPrefix, llmSuffix, stopTokens } = getCompletionOptions(prefixAndSuffix, relevantContext, justAcceptedAutocompletion)
+		const { shouldGenerate, predictionType, llmPrefix, llmSuffix, stopTokens } = getCompletionOptions(prefixAndSuffix, relevantContext, justAcceptedAutocompletion, model.uri.fsPath)
 
 		if (!shouldGenerate) return []
 

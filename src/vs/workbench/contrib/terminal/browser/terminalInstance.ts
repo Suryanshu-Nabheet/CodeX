@@ -142,8 +142,12 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	private _xtermReadyPromise: Promise<XtermTerminal | undefined>;
 
 	private _pressAnyKeyToCloseListener: IDisposable | undefined;
+	private _footerHeightTarget: number = 20;
+	private _footerElement: HTMLElement | undefined;
+
 	private _instanceId: number;
 	private _latestXtermWriteData: number = 0;
+
 	private _latestXtermParseData: number = 0;
 	private _isExiting: boolean;
 	private _hadFocusOnExit: boolean;
@@ -156,8 +160,10 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	private _titleSource: TitleEventSource = TitleEventSource.Process;
 	private _container: HTMLElement | undefined;
 	private _wrapperElement: (HTMLElement & { xterm?: XTermTerminal });
+
 	get domElement(): HTMLElement { return this._wrapperElement; }
 	private _horizontalScrollbar: DomScrollableElement | undefined;
+
 	private _terminalFocusContextKey: IContextKey<boolean>;
 	private _terminalHasFixedWidth: IContextKey<boolean>;
 	private _terminalHasTextContextKey: IContextKey<boolean>;
@@ -748,11 +754,14 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		const computedStyle = dom.getWindow(this.xterm.raw.element).getComputedStyle(this.xterm.raw.element);
 		const horizontalPadding = parseInt(computedStyle.paddingLeft) + parseInt(computedStyle.paddingRight) + 14/*scroll bar padding*/;
 		const verticalPadding = parseInt(computedStyle.paddingTop) + parseInt(computedStyle.paddingBottom);
+		const footerHeight = this._footerHeightTarget;
 		TerminalInstance._lastKnownCanvasDimensions = new dom.Dimension(
 			Math.min(Constants.MaxCanvasWidth, width - horizontalPadding),
-			height - verticalPadding + (this._hasScrollBar && this._horizontalScrollbar ? -5/* scroll bar height */ : 0) - 20);
+			height - verticalPadding + (this._hasScrollBar && this._horizontalScrollbar ? -5/* scroll bar height */ : 0) - footerHeight);
 		return TerminalInstance._lastKnownCanvasDimensions;
 	}
+
+
 
 	get persistentProcessId(): number | undefined { return this._processManager.persistentProcessId; }
 	get shouldPersist(): boolean { return this._processManager.shouldPersist && !this.shellLaunchConfig.isTransient && (!this.reconnectionProperties || this._configurationService.getValue('task.reconnection') === true); }
@@ -996,8 +1005,10 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this._wrapperElement.style.display = 'flex';
 		this._wrapperElement.style.flexDirection = 'column';
 		this._wrapperElement.style.height = '100%';
+		this._wrapperElement.style.position = 'relative';
 
 		const xtermElement = document.createElement('div');
+
 		xtermElement.style.flex = '1';
 		xtermElement.style.minHeight = '0';
 		xtermElement.style.position = 'relative';
@@ -1005,6 +1016,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 
 		// CodeX Footer - Cmd+K hint
 		const footer = document.createElement('div');
+		footer.className = 'codex-terminal-footer';
 		footer.style.height = '20px'; // Maintain same spacing
 		footer.style.minHeight = '20px';
 		footer.style.display = 'flex';
@@ -1014,10 +1026,19 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		footer.style.opacity = '0.6';
 		footer.style.userSelect = 'none';
 		footer.style.color = 'var(--vscode-descriptionForeground)';
-		footer.style.cursor = 'default'; // Not actionable
+		footer.style.cursor = 'pointer';
 		footer.textContent = '⌘K to generate commands';
+		footer.title = 'Click or press Cmd+K to generate terminal commands with AI';
 
+		footer.onclick = () => {
+			this._commandService.executeCommand('codex.terminal.quickEdit');
+		};
+
+		this._footerElement = footer;
 		this._wrapperElement.appendChild(footer);
+
+
+
 
 		this._container.appendChild(this._wrapperElement);
 
@@ -1313,7 +1334,37 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this.focus(force);
 	}
 
+	setFooterVisible(visible: boolean, height?: number): void {
+		if (this._footerElement) {
+			this._footerElement.style.display = 'flex';
+			// No transition during layout calculation to ensure JS and CSS stay in sync
+			// We can re-enable transition for visibility if needed, but height must be stable for terminal rows calculation
+			this._footerHeightTarget = height !== undefined ? height : 20;
+
+			this._footerElement.style.height = `${this._footerHeightTarget}px`;
+			this._footerElement.style.minHeight = `${this._footerHeightTarget}px`;
+
+			if (!visible) {
+				this._footerElement.textContent = '';
+				this._footerElement.style.pointerEvents = 'none';
+				this._footerElement.style.visibility = 'hidden';
+			} else {
+				this._footerElement.textContent = '⌘K to generate commands';
+				this._footerElement.style.pointerEvents = 'auto';
+				this._footerElement.style.visibility = 'visible';
+			}
+
+			// Re-layout immediately with the new target height
+			if (this._isVisible && this._lastLayoutDimensions) {
+				this.layout(this._lastLayoutDimensions);
+			}
+		}
+	}
+
+
+
 	async sendText(text: string, shouldExecute: boolean, bracketedPasteMode?: boolean): Promise<void> {
+
 		// Apply bracketed paste sequences if the terminal has the mode enabled, this will prevent
 		// the text from triggering keybindings and ensure new lines are handled properly
 		if (bracketedPasteMode && this.xterm?.raw.modes.bracketedPasteMode) {

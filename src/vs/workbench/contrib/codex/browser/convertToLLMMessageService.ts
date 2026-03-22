@@ -725,7 +725,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		// from hallucinating system instructions as code suggestions.
 		const prefix = messages.prefix
 		const suffix = messages.suffix
-		const stopTokens = [...messages.stopTokens, '<META_INSTRUCTIONS>', '</META_INSTRUCTIONS>', '<REFERENTIAL_CONTEXT>', '</REFERENTIAL_CONTEXT>'];
+		const stopTokens = [...messages.stopTokens, '<META_INSTRUCTIONS>', '</META_INSTRUCTIONS>', '<REFERENTIAL_CONTEXT>', '</REFERENTIAL_CONTEXT>', '/* ARCHITECTURAL_CONTEXT', '/* BEGIN_FILE_PREFIX'];
 		return { prefix, suffix, stopTokens }
 	}
 

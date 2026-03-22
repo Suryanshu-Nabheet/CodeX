@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE.txt for more information.
  *--------------------------------------------------------------------------------------*/
 
-import React, { JSX, useMemo, useState } from 'react'
+import React, { JSX, useMemo, useState, useEffect } from 'react'
 import { marked, MarkedToken, Token } from 'marked'
 
 import { convertToVscodeLang, detectLanguage } from '../../../../common/helpers/languageHelpers.js'
@@ -14,7 +14,8 @@ import { isAbsolute } from '../../../../../../../base/common/path.js'
 import { separateOutFirstLine } from '../../../../common/helpers/util.js'
 import { BlockCode } from '../util/inputs.js'
 import { CodespanLocationLink } from '../../../../common/chatThreadServiceTypes.js'
-import { getBasename, getRelative, codexOpenFileFn } from '../sidebar-tsx/SidebarChat.js'
+import { getBasename, getRelative, codexOpenFileFn, IconLoading } from '../sidebar-tsx/SidebarChat.js'
+import { Check, Circle, Loader2, AlertCircle, ListTodo, ChevronDown, ChevronRight } from 'lucide-react'
 
 
 export type ChatMessageLocation = {
@@ -88,6 +89,141 @@ const LatexRender = ({ latex }: { latex: string }) => {
 	// 	return <span className="katex-error text-red-500">{latex}</span>;
 	// }
 }
+
+type PlanItemStatus = 'todo' | 'doing' | 'done' | 'error'
+interface PlanItem {
+	status: PlanItemStatus
+	text: string
+}
+
+const PlanStatusBlock = ({ isStreaming, isUpdate }: { isStreaming: boolean, isUpdate?: boolean }) => {
+	return (
+		<div className="flex items-center gap-2 py-2 my-1 select-none">
+			<div className="flex items-center gap-1.5 text-[10px] font-bold text-codex-fg-3/60 uppercase tracking-tight">
+				{isStreaming ? (
+					<Loader2 size={11} className="animate-spin opacity-80" />
+				) : (
+					<div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+				)}
+				{isUpdate ? (isStreaming ? 'Updating ToDo' : 'ToDo Updated') : (isStreaming ? 'Creating ToDo' : 'ToDo Created')}
+			</div>
+			<div className="h-[1px] flex-1 bg-codex-border-1 opacity-20" />
+		</div>
+	)
+}
+
+export const PlanBlock = ({ content, isStreaming, className = '' }: { content: string, isStreaming?: boolean, className?: string }) => {
+	const items = useMemo(() => {
+		const lines = content.trim().split('\n')
+		return lines
+			.map(line => {
+				const match = line.match(/^\[(todo|doing|done|error)\]\s*(.*)$/i)
+				if (match) {
+					const status = match[1].toLowerCase() as PlanItemStatus
+					return { status, text: match[2].trim() }
+				}
+				const text = line.trim()
+				return text ? { status: 'todo' as PlanItemStatus, text } : null
+			})
+			.filter((item): item is PlanItem => !!item && !!item.text)
+	}, [content])
+
+	const [isOpen, setIsOpen] = useState(true)
+
+	const numTasks = items.length
+
+	return (
+		<div className={`rounded-lg border border-zinc-300/10 bg-codex-bg-3 overflow-hidden transition-all duration-200 ${className}`}>
+			<div
+				className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-codex-bg-3/20 transition-colors select-none"
+				onClick={() => setIsOpen(!isOpen)}
+			>
+				<div className="flex items-center gap-1">
+					<svg
+						className="transition-transform duration-200 size-3"
+						style={{
+							transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+							transition: 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)'
+						}}
+						xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline>
+					</svg>
+					<span className="text-xs text-codex-fg-3">
+						{numTasks === 0 ? 'No tasks in plan' : `${numTasks} task${numTasks === 1 ? '' : 's'} to do`}
+					</span>
+				</div>
+			</div>
+			{isOpen && (
+				<div className="px-0.5 pb-0.5 flex flex-col gap-0.5">
+					{items.map((item, i) => {
+						const isDoing = item.status === 'doing'
+						const isActive = isDoing && isStreaming
+						// If not streaming and it's still marked as "doing", we treat it as done for the final UI state
+						const effectiveStatus = (isDoing && !isStreaming) ? 'done' : item.status
+						
+						return (
+							<div key={i} className={`flex items-start gap-1.5 px-2 py-0.5 rounded transition-all duration-150 ${isActive ? 'bg-blue-500/5' : 'hover:bg-codex-bg-3/10'}`}>
+								<div className="mt-1 flex-shrink-0">
+									{effectiveStatus === 'todo' && <Circle size={10} strokeWidth={1.5} className="text-codex-fg-4" />}
+									{effectiveStatus === 'doing' && (
+										<div className="relative flex items-center justify-center">
+											<Loader2 size={10} strokeWidth={2.5} className={`text-blue-500 ${isActive ? 'animate-spin' : 'opacity-40'}`} />
+											{isActive && <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-[1px] animate-pulse" />}
+										</div>
+									)}
+									{effectiveStatus === 'done' && <Check size={10} strokeWidth={3.5} className="text-emerald-500" />}
+									{effectiveStatus === 'error' && <AlertCircle size={10} strokeWidth={2} className="text-rose-500" />}
+								</div>
+								<span className={`text-[11px] leading-tight font-medium transition-all ${effectiveStatus === 'done' ? 'text-codex-fg-4 line-through opacity-50 italic' : 'text-codex-fg-1'}`}>
+									{item.text}
+								</span>
+							</div>
+						)
+					})}
+				</div>
+			)}
+		</div>
+	)
+}
+
+const ThoughtBlock = ({ thought, isStreaming }: { thought: string, isStreaming?: boolean }) => {
+	const [isOpen, setIsOpen] = useState(isStreaming)
+	useEffect(() => {
+		if (isStreaming) setIsOpen(true)
+	}, [isStreaming])
+
+	return (
+		<div className="w-full border border-codex-border-3 rounded px-2 py-1 bg-codex-bg-3 overflow-hidden my-2">
+			{/* header */}
+			<div
+				className="select-none flex items-center min-h-[24px] cursor-pointer hover:brightness-125 transition-all duration-150"
+				onClick={() => setIsOpen(!isOpen)}
+			>
+				<ChevronRight
+					className={`text-codex-fg-3 mr-1 h-3.5 w-3.5 flex-shrink-0 transition-transform duration-100 ease-[cubic-bezier(0.4,0,0.2,1)] ${isOpen ? 'rotate-90' : ''}`}
+				/>
+				<div className="flex items-center overflow-hidden">
+					<span className="text-codex-fg-3 flex-shrink-0">
+						{isStreaming ? (
+							<span className='flex items-center flex-nowrap'>
+								Thinking
+								<IconLoading className='ml-1' />
+							</span>
+						) : 'Thought Process'}
+					</span>
+				</div>
+			</div>
+			{/* children */}
+			<div className={`overflow-hidden transition-all duration-200 ease-in-out ${isOpen ? 'opacity-100 py-1' : 'max-h-0 opacity-0'} text-codex-fg-4 rounded-sm overflow-x-auto`}>
+				<div className="px-2 py-1 text-sm whitespace-pre-wrap leading-relaxed opacity-90">
+					{thought.trim()}
+				</div>
+			</div>
+		</div>
+	)
+}
+
+
+
 
 const Codespan = ({ text, className, onClick, tooltip }: { text: string, className?: string, onClick?: () => void, tooltip?: string }) => {
 
@@ -265,7 +401,7 @@ const paragraphToLatexSegments = (paragraphText: string) => {
 }
 
 
-export type RenderTokenOptions = { isApplyEnabled?: boolean, isLinkDetectionEnabled?: boolean }
+export type RenderTokenOptions = { isApplyEnabled?: boolean, isLinkDetectionEnabled?: boolean, hidePlan?: boolean, isStreaming?: boolean, isUpdate?: boolean }
 const RenderToken = ({ token, inPTag, codeURI, chatMessageLocation, tokenIdx, ...options }: { token: Token | string, inPTag?: boolean, codeURI?: URI, chatMessageLocation?: ChatMessageLocation, tokenIdx: string, } & RenderTokenOptions): React.ReactNode => {
 	const accessor = useAccessor()
 	const languageService = accessor.get('ILanguageService')
@@ -545,12 +681,52 @@ const RenderToken = ({ token, inPTag, codeURI, chatMessageLocation, tokenIdx, ..
 
 export const ChatMarkdownRender = ({ string, inPTag = false, chatMessageLocation, ...options }: { string: string, inPTag?: boolean, codeURI?: URI, chatMessageLocation: ChatMessageLocation | undefined } & RenderTokenOptions) => {
 	string = string.replaceAll('\n•', '\n\n•')
-	const tokens = marked.lexer(string); // https://marked.js.org/using_pro#renderer
+
+	// Pre-process thinking and plan tags into a format we can handle
+	const parts = useMemo(() => {
+		const result: (string | { type: 'thought' | 'plan', content: string, isDone: boolean })[] = []
+		// Matches tags and captures content. If closing tag is missing, it captures until end of string (for streaming).
+		const combinedRegex = /<(thinking|thought|thought_process|analysis|plan)>([\s\S]*?)(<\/\1>|$)/g
+		let lastIndex = 0
+		let match
+
+		while ((match = combinedRegex.exec(string)) !== null) {
+			if (match.index > lastIndex) {
+				result.push(string.substring(lastIndex, match.index))
+			}
+			const tag = match[1].toLowerCase()
+			const type = (tag === 'plan') ? 'plan' : 'thought'
+			const content = match[2]
+			const isDone = !!match[3] && match[3] !== ''
+			
+			result.push({ type, content, isDone })
+			lastIndex = match.index + match[0].length
+			if (lastIndex >= string.length) break;
+		}
+
+		if (lastIndex < string.length) {
+			result.push(string.substring(lastIndex))
+		}
+		return result
+	}, [string])
+
 	return (
 		<>
-			{tokens.map((token, index) => (
-				<RenderToken key={index} token={token} inPTag={inPTag} chatMessageLocation={chatMessageLocation} tokenIdx={index + ''} {...options} />
-			))}
+			{parts.map((part, i) => {
+				if (typeof part === 'string') {
+					if (!part.trim() && i === 0) return null
+					const tokens = marked.lexer(part)
+					return tokens.map((token, j) => (
+						<RenderToken key={`${i}-${j}`} token={token} inPTag={inPTag} chatMessageLocation={chatMessageLocation} tokenIdx={`${i}-${j}`} {...options} />
+					))
+				} else if (part.type === 'thought') {
+					return <ThoughtBlock key={i} thought={part.content} isStreaming={!part.isDone || !!options.isStreaming} />
+				} else {
+					// We always show a status block for plans in the chat history instead of the full list
+					// as it's cleaner and the full list is already in the sidebar bottom.
+					return <PlanStatusBlock key={i} isStreaming={!part.isDone || !!options.isStreaming} isUpdate={!!options.isUpdate} />
+				}
+			})}
 		</>
 	)
 }

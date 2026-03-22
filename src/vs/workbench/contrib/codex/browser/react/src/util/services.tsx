@@ -22,6 +22,7 @@ import { ILLMMessageService } from '../../../../common/sendLLMMessageService.js'
 import { IRefreshModelService } from '../../../../../../../workbench/contrib/codex/common/refreshModelService.js';
 import { ICodexSettingsService } from '../../../../../../../workbench/contrib/codex/common/codexSettingsService.js';
 import { IExtensionTransferService } from '../../../../../../../workbench/contrib/codex/browser/extensionTransferService.js'
+import { IEditorService } from '../../../../../../services/editor/common/editorService.js';
 
 import { IInstantiationService } from '../../../../../../../platform/instantiation/common/instantiation.js'
 import { ICodeEditorService } from '../../../../../../../editor/browser/services/codeEditorService.js'
@@ -48,7 +49,11 @@ import { INativeHostService } from '../../../../../../../platform/native/common/
 import { IEditCodeService } from '../../../editCodeServiceInterface.js'
 import { IToolsService } from '../../../toolsService.js'
 import { IConvertToLLMMessageService } from '../../../convertToLLMMessageService.js'
+import { ITerminalEditService } from '../../../terminalEditServiceInterface.js'
 import { ITerminalService } from '../../../../../terminal/browser/terminal.js'
+import { ICodexSCMService } from '../../../../common/codexSCMTypes.js'
+
+
 import { ISearchService } from '../../../../../../services/search/common/search.js'
 import { IExtensionManagementService } from '../../../../../../../platform/extensionManagement/common/extensionManagement.js'
 import { IMCPService } from '../../../../common/mcpService.js';
@@ -83,6 +88,9 @@ const activeURIListeners: Set<(uri: URI | null) => void> = new Set();
 
 const mcpListeners: Set<() => void> = new Set()
 
+const terminalCtrlKStreamingStateListeners: Set<(s: boolean) => void> = new Set()
+
+
 
 // must call this before you can use any of the hooks below
 // this should only be called ONCE! this is the only place you don't need to dispose onDidChange. If you use state.onDidChange anywhere else, make sure to dispose it!
@@ -101,9 +109,13 @@ export const _registerServices = (accessor: ServicesAccessor) => {
 		codexCommandBarService: accessor.get(ICodexCommandBarService),
 		modelService: accessor.get(IModelService),
 		mcpService: accessor.get(IMCPService),
+		terminalEditService: accessor.get(ITerminalEditService),
+		editorService: accessor.get(IEditorService),
 	}
 
-	const { settingsStateService, chatThreadsStateService, refreshModelService, themeService, editCodeService, codexCommandBarService, modelService, mcpService } = stateServices
+
+	const { settingsStateService, chatThreadsStateService, refreshModelService, themeService, editCodeService, codexCommandBarService, modelService, mcpService, terminalEditService, editorService } = stateServices
+
 
 
 
@@ -171,10 +183,25 @@ export const _registerServices = (accessor: ServicesAccessor) => {
 	)
 
 	disposables.push(
+		editorService.onDidActiveEditorChange(() => {
+			const activeEditor = editorService.activeEditor;
+			const uri = activeEditor?.resource?.scheme === 'file' ? activeEditor.resource : null;
+			activeURIListeners.forEach(l => l(uri));
+		})
+	)
+
+	disposables.push(
 		mcpService.onDidChangeState(() => {
 			mcpListeners.forEach(l => l())
 		})
 	)
+
+	disposables.push(
+		terminalEditService.onDidChangeStreaming((isStreaming) => {
+			terminalCtrlKStreamingStateListeners.forEach(l => l(isStreaming))
+		})
+	)
+
 
 
 	return disposables
@@ -229,6 +256,11 @@ const getReactAccessor = (accessor: ServicesAccessor) => {
 		IMCPService: accessor.get(IMCPService),
 
 		IStorageService: accessor.get(IStorageService),
+
+
+		ITerminalEditService: accessor.get(ITerminalEditService),
+		ICodexSCMService: accessor.get(ICodexSCMService),
+		IEditorService: accessor.get(IEditorService),
 
 	} as const
 	return reactAccessor
@@ -342,6 +374,14 @@ export const useCtrlKZoneStreamingState = (listener: (diffareaid: number, s: boo
 	}, [listener, ctrlKZoneStreamingStateListeners])
 }
 
+export const useTerminalCtrlKStreamingState = (listener: (s: boolean) => void) => {
+	useEffect(() => {
+		terminalCtrlKStreamingStateListeners.add(listener)
+		return () => { terminalCtrlKStreamingStateListeners.delete(listener) }
+	}, [listener, terminalCtrlKStreamingStateListeners])
+}
+
+
 export const useIsDark = () => {
 	const [s, ss] = useState(colorThemeState)
 	useEffect(() => {
@@ -378,10 +418,13 @@ export const useCommandBarState = () => {
 // roughly gets the active URI - this is used to get the history of recent URIs
 export const useActiveURI = () => {
 	const accessor = useAccessor()
-	const commandBarService = accessor.get('ICodexCommandBarService')
-	const [s, ss] = useState(commandBarService.activeURI)
+	const editorService = accessor.get('IEditorService')
+	const [s, ss] = useState(() => {
+		const activeEditor = editorService.activeEditor;
+		return activeEditor?.resource?.scheme === 'file' ? activeEditor.resource : null;
+	})
 	useEffect(() => {
-		const listener = () => { ss(commandBarService.activeURI) }
+		const listener = (uri: URI | null) => { ss(uri) }
 		activeURIListeners.add(listener);
 		return () => { activeURIListeners.delete(listener) };
 	}, [])
