@@ -64,6 +64,7 @@ const dirs = [
 	'extensions/codex-timeline', // CodeX added this
 	'extensions/codex-pdfviewer', // CodeX added this
 	'extensions/codex-pathintellisense', // CodeX added this
+	'extensions/codex-sync', // CodeX added this
 ];
 
 if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
