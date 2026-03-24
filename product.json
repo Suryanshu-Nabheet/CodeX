@@ -45,7 +45,20 @@
 		"controlUrl": "https://az764295.vo.msecnd.net/extensions/marketplace.json",
 		"recommendationsUrl": "https://az764295.vo.msecnd.net/extensions/workspaceRecommendations.json.gz"
 	},
-	"builtInExtensions": [],
+	"builtInExtensions": [
+		{ "name": "codex-sync" },
+		{ "name": "codex-onboarding" },
+		{ "name": "codex-error-lens" },
+		{ "name": "codex-project-tree" },
+		{ "name": "codex-theme" },
+		{ "name": "codex-commit" },
+		{ "name": "codex-timeline" },
+		{ "name": "codex-pdfviewer" },
+		{ "name": "codex-pathintellisense" },
+		{ "name": "emulator" },
+		{ "name": "open-remote-ssh" },
+		{ "name": "open-remote-wsl" }
+	],
 	"linkProtectionTrustedDomains": [
 		"https://ollama.com",
 		"https://continue.dev",

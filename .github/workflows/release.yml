@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   release:
     name: Build & Release
@@ -13,7 +16,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            memory: 6144
+          - os: macos-latest
+            memory: 12288
+          - os: windows-latest
+            memory: 6144
     
+    env:
+      NODE_OPTIONS: "--max-old-space-size=${{ matrix.memory }}"
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - name: Checkout CodeX
         uses: actions/checkout@v4
@@ -34,6 +48,11 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Install Build Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -49,10 +68,12 @@ jobs:
       - name: Build CodeX Artifacts (macOS)
         if: matrix.os == 'macos-latest'
         run: |
+          # Build x64
           npm run gulp vscode-darwin-x64-min
-          npm run gulp vscode-darwin-arm64-min
-          # Package as Zips
           cd ../VSCode-darwin-x64 && zip -r ../CodeX-darwin-x64.zip .
+          
+          # Build arm64
+          npm run gulp vscode-darwin-arm64-min
           cd ../VSCode-darwin-arm64 && zip -r ../CodeX-darwin-arm64.zip .
 
       - name: Build CodeX Artifacts (Linux)

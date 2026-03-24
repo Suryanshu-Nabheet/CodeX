@@ -10,8 +10,6 @@ const dirs = [
 	'',
 	'build',
 	'extensions',
-	'extensions/codex-timeline',
-	'extensions/codex-commit',
 	'extensions/configuration-editing',
 	'extensions/css-language-features',
 	'extensions/css-language-features/server',
