@@ -70,6 +70,14 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Setup Swap Space (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
       - name: Install Build Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
