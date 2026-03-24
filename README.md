@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0.0--beta-blue?style=for-the-badge" alt="Version 1.0.0-beta" />
+  <img src="https://img.shields.io/badge/Version-1.0.0--beta-blue?style=for-the-badge" alt="Version 0.0.1-beta" />
   <img src="https://img.shields.io/badge/Powered%20By-VS%20Code-007ACC?style=for-the-badge&logo=visual-studio-code" alt="Powered by VS Code" />
   <img src="https://img.shields.io/badge/AI%20Engine-Native%20Orchestration-FF6F61?style=for-the-badge" alt="AI Engine: Native Orchestration" />
 </p>
