@@ -40,7 +40,7 @@ jobs:
             task: vscode-win32-x64-min
             artifact: CodeX-win32-x64.zip
             binary_dir: VSCode-win32-x64
-    
+
     env:
       NODE_OPTIONS: "--max-old-space-size=${{ matrix.memory }}"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -81,6 +81,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build CodeX React UI
+        run: cd src/vs/workbench/contrib/codex/browser/react && node build.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Compile CodeX Core
         run: npm run compile
         env:
@@ -111,9 +116,9 @@ jobs:
           name: CodeX Release ${{ github.ref_name }}
           body: |
             ## Release ${{ github.ref_name }}
-            
+
             Published on: ${{ github.event.head_commit.timestamp }}
-            
+
             ### Installation:
             - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`.
             - **macOS (Intel)**: Unzip `CodeX-darwin-x64.zip`.
