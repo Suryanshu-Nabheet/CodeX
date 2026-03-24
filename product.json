@@ -1,9 +1,11 @@
 {
 	"nameShort": "CodeX",
 	"nameLong": "CodeX",
+	"applicationName": "codex",
+	"urlProtocol": "codex",
+	"updateUrl": "https://raw.githubusercontent.com/Suryanshu-Nabheet/CodeX/main/update.json",
 	"codexVersion": "0.0.1",
 	"codexRelease": "0001",
-	"applicationName": "vscode",
 	"dataFolderName": ".codex",
 	"win32MutexName": "codex",
 	"licenseName": "MIT",
@@ -34,7 +36,6 @@
 	"requestFeatureUrl": "https://github.com/Suryanshu-Nabheet/CodeX/issues",
 	"introductoryVideosUrl": "https://github.com/Suryanshu-Nabheet/CodeX",
 	"nodejsRepository": "https://nodejs.org",
-	"urlProtocol": "vscode",
 	"extensionsGallery": {
 		"serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
 		"cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",

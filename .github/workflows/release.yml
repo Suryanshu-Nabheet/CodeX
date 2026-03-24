@@ -20,10 +20,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Free Disk Space (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: 20
           cache: 'npm'
 
       - name: Install Build Dependencies (Linux)
@@ -64,13 +72,26 @@ jobs:
 
       - name: Create GitHub Release
         if: success()
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             ../CodeX-*.zip
             ../CodeX-*.tar.gz
           draft: false
           prerelease: false
+          name: CodeX Release ${{ github.ref_name }}
+          body: |
+            ## Release ${{ github.ref_name }}
+            
+            This release contains the latest production build of CodeX for Windows, Mac, and Linux.
+            
+            Published on: ${{ github.event.head_commit.timestamp }}
+            
+            ### Installation:
+            - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`.
+            - **macOS (Intel)**: Unzip `CodeX-darwin-x64.zip`.
+            - **macOS (Apple Silicon)**: Unzip `CodeX-darwin-arm64.zip`.
+            - **Linux**: Extract `CodeX-linux-x64.tar.gz` and run `./codex`.
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
