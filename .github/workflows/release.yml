@@ -78,9 +78,13 @@ jobs:
 
       - name: Install Dependencies
         run: npm install --no-audit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile CodeX Core
         run: npm run compile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build CodeX Artifact
         run: npm run gulp ${{ matrix.task }}
