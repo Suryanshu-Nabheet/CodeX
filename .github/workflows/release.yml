@@ -73,10 +73,11 @@ jobs:
       - name: Setup Swap Space (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo fallocate -l 4G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          sudo swapoff -a || true
+          sudo dd if=/dev/zero of=/mnt/swap.img bs=1M count=4096
+          sudo chmod 600 /mnt/swap.img
+          sudo mkswap /mnt/swap.img
+          sudo swapon /mnt/swap.img
 
       - name: Install Build Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
