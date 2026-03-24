@@ -9,20 +9,37 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build & Release
+  build:
+    name: Build (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
         include:
-          - os: ubuntu-latest
-            memory: 6144
-          - os: macos-latest
+          - target: mac-x64
+            os: macos-13
             memory: 12288
-          - os: windows-latest
+            task: vscode-darwin-x64-min
+            artifact: CodeX-darwin-x64.zip
+            binary_dir: VSCode-darwin-x64
+          - target: mac-arm64
+            os: macos-14
+            memory: 12288
+            task: vscode-darwin-arm64-min
+            artifact: CodeX-darwin-arm64.zip
+            binary_dir: VSCode-darwin-arm64
+          - target: linux-x64
+            os: ubuntu-latest
             memory: 6144
+            task: vscode-linux-x64-min
+            artifact: CodeX-linux-x64.tar.gz
+            binary_dir: VSCode-linux-x64
+          - target: win32-x64
+            os: windows-latest
+            memory: 6144
+            task: vscode-win32-x64-min
+            artifact: CodeX-win32-x64.zip
+            binary_dir: VSCode-win32-x64
     
     env:
       NODE_OPTIONS: "--max-old-space-size=${{ matrix.memory }}"
@@ -65,46 +82,31 @@ jobs:
       - name: Compile CodeX Core
         run: npm run compile
 
-      - name: Build CodeX Artifacts (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          # Build x64
-          npm run gulp vscode-darwin-x64-min
-          cd ../VSCode-darwin-x64 && zip -r ../CodeX-darwin-x64.zip .
-          
-          # Build arm64
-          npm run gulp vscode-darwin-arm64-min
-          cd ../VSCode-darwin-arm64 && zip -r ../CodeX-darwin-arm64.zip .
+      - name: Build CodeX Artifact
+        run: npm run gulp ${{ matrix.task }}
 
-      - name: Build CodeX Artifacts (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          npm run gulp vscode-linux-x64-min
-          # Package as Tarballs
-          cd ../VSCode-linux-x64 && tar -czf ../CodeX-linux-x64.tar.gz .
-      
-      - name: Build CodeX Artifacts (Windows)
+      - name: Package Artifact (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
-        run: |
-          npm run gulp vscode-win32-x64-min
-          # Package as Zips
-          cd ../VSCode-win32-x64; Compress-Archive -Path * -DestinationPath ../CodeX-win32-x64.zip
+        run: cd ../${{ matrix.binary_dir }}; Compress-Archive -Path * -DestinationPath ../${{ matrix.artifact }}
 
-      - name: Create GitHub Release
-        if: success()
+      - name: Package Artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: cd ../${{ matrix.binary_dir }} && tar -czf ../${{ matrix.artifact }} .
+
+      - name: Package Artifact (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: cd ../${{ matrix.binary_dir }} && zip -r ../${{ matrix.artifact }} .
+
+      - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            ../CodeX-*.zip
-            ../CodeX-*.tar.gz
+          files: ../${{ matrix.artifact }}
           draft: false
           prerelease: false
           name: CodeX Release ${{ github.ref_name }}
           body: |
             ## Release ${{ github.ref_name }}
-            
-            This release contains the latest production build of CodeX for Windows, Mac, and Linux.
             
             Published on: ${{ github.event.head_commit.timestamp }}
             
