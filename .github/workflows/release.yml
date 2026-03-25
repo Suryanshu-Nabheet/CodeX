@@ -74,10 +74,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo swapoff -a || true
-          sudo dd if=/dev/zero of=/mnt/swap.img bs=1M count=4096
-          sudo chmod 600 /mnt/swap.img
-          sudo mkswap /mnt/swap.img
-          sudo swapon /mnt/swap.img
+          sudo dd if=/dev/zero of=~/swapfile bs=1M count=10240
+          sudo chmod 600 ~/swapfile
+          sudo mkswap ~/swapfile
+          sudo swapon ~/swapfile
 
       - name: Install Build Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -101,7 +101,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build CodeX Artifact
-        run: npm run gulp ${{ matrix.task }}
+        run: node --max-old-space-size=${{ matrix.memory }} ./node_modules/gulp/bin/gulp.js ${{ matrix.task }}
 
       - name: Package Artifact (Windows)
         if: matrix.os == 'windows-latest'
