@@ -30,7 +30,7 @@ jobs:
             binary_dir: VSCode-darwin-arm64
           - target: linux-x64
             os: ubuntu-latest
-            memory: 6144
+            memory: 12288
             task: vscode-linux-x64-min
             artifact: CodeX-linux-x64.tar.gz
             binary_dir: VSCode-linux-x64
@@ -74,10 +74,11 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo swapoff -a || true
-          sudo dd if=/dev/zero of=~/swapfile bs=1M count=10240
-          sudo chmod 600 ~/swapfile
-          sudo mkswap ~/swapfile
-          sudo swapon ~/swapfile
+          sudo dd if=/dev/zero of=/swapfile bs=1M count=10240
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          swapon --show
 
       - name: Install Build Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
