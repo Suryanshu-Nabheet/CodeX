@@ -19,25 +19,25 @@ jobs:
           - target: mac-x64
             os: macos-latest
             memory: 12288
-            task: vscode-darwin-x64-min
+            task: vscode-darwin-x64
             artifact: CodeX-darwin-x64.zip
             binary_dir: VSCode-darwin-x64
           - target: mac-arm64
             os: macos-latest
             memory: 12288
-            task: vscode-darwin-arm64-min
+            task: vscode-darwin-arm64
             artifact: CodeX-darwin-arm64.zip
             binary_dir: VSCode-darwin-arm64
           - target: linux-x64
             os: ubuntu-latest
             memory: 12288
-            task: vscode-linux-x64-min
+            task: vscode-linux-x64
             artifact: CodeX-linux-x64.tar.gz
             binary_dir: VSCode-linux-x64
           - target: win32-x64
             os: windows-latest
             memory: 6144
-            task: vscode-win32-x64-min
+            task: vscode-win32-x64
             artifact: CodeX-win32-x64.zip
             binary_dir: VSCode-win32-x64
 
