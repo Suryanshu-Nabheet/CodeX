@@ -159,7 +159,8 @@ function getBuiltInExtensions() {
     const control = readControlFile();
     const streams = [];
     for (const extension of [...builtInExtensions, ...webBuiltInExtensions]) {
-        const controlState = control[extension.name] || 'marketplace';
+        const localPath = path_1.default.join(root, 'extensions', extension.name);
+        const controlState = control[extension.name] || (fs_1.default.existsSync(localPath) ? localPath : 'marketplace');
         control[extension.name] = controlState;
         streams.push(syncExtension(extension, controlState));
     }
