@@ -9,6 +9,7 @@ import { IEnvironmentMainService } from '../../environment/electron-main/environ
 import { ILifecycleMainService } from '../../lifecycle/electron-main/lifecycleMainService.js';
 import { ILogService } from '../../log/common/log.js';
 import { IProductService } from '../../product/common/productService.js';
+import { asText } from '../../request/common/request.js';
 import { IRequestService } from '../../request/common/request.js';
 import { IUpdate, State, StateType, UpdateType, DisablementReason } from '../common/update.js';
 import { AbstractUpdateService } from './abstractUpdateService.js';
@@ -100,7 +101,12 @@ export class GitHubUpdateService extends AbstractUpdateService {
 				return;
 			}
 
-			const text = await result.stream.toString();
+			const text = await asText(result);
+			if (!text) {
+				this.logService.warn('GitHubUpdateService: empty response body');
+				this.setState(State.Idle(UpdateType.Archive));
+				return;
+			}
 			const release = JSON.parse(text);
 
 			if (!release?.tag_name) {
@@ -141,7 +147,8 @@ export class GitHubUpdateService extends AbstractUpdateService {
 			if (result.res.statusCode !== 200) {
 				return undefined;
 			}
-			const text = await result.stream.toString();
+			const text = await asText(result);
+			if (!text) { return undefined; }
 			const release = JSON.parse(text);
 			const latestVersion = this._normalizeVersion(release.tag_name);
 			return latestVersion === this._currentVersion;
