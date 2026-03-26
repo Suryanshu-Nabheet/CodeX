@@ -93,7 +93,7 @@ export class GitHubUpdateService extends AbstractUpdateService {
 		try {
 			const url = GITHUB_RELEASES_API;
 
-			const result = await this.requestService.request({ url }, CancellationToken.None);
+			const result = await this.requestService.request({ url, timeout: 10000 }, CancellationToken.None);
 			if (result.res.statusCode !== 200) {
 				this.logService.warn(`GitHubUpdateService: GitHub API returned HTTP ${result.res.statusCode}`);
 				this.setState(State.Idle(UpdateType.Archive));

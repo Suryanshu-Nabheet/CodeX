@@ -151,8 +151,8 @@ jobs:
             - **macOS**: Open the `.dmg` and drag **CodeX.app** to your **Applications** folder.
             - **Linux**: Extract and run `./codex`.
 
-            ### 🚀 One-Time macOS Activation
-            Since CodeX is an unsigned open-source project, macOS may show a "Damaged" warning. 
+            ### One-Time macOS Activation
+            Since CodeX is an unsigned open-source project, macOS may show a "Damaged" warning.
             **Move CodeX.app to Applications**, then run this in your terminal to enable it:
             `xattr -d com.apple.quarantine /Applications/CodeX.app`
           generate_release_notes: true
