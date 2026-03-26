@@ -254,3 +254,4 @@ All inputs entering the inference layer, MCP tool executor, or SCM operations mu
 Violations of rules marked with hard constraints (telemetry, data routing, main-thread blocking, force-merge on `main`) are grounds for immediate revert without discussion. All other violations are addressed through the standard PR review and feedback process.
 
 Questions and exceptions: contact the Technical Lead at `suryanshunab@gmail.com`.
+
