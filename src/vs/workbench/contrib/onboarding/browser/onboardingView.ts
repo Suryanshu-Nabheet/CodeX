@@ -72,7 +72,7 @@ export class OnboardingView extends Disposable {
 		this._finalizingOverlay = append(this._container, $('.onboarding-finalizing-overlay'));
 		append(this._finalizingOverlay, $('.finalizing-loader'));
 		append(this._finalizingOverlay, $('.finalizing-text', undefined, localize('onboarding.setupTitle', 'Setting up CodeX')));
-		append(this._finalizingOverlay, $('.finalizing-subtext', undefined, localize('onboarding.setupSubtext', 'Bringing your environment to life...')));
+		append(this._finalizingOverlay, $('.finalizing-subtext', undefined, localize('onboarding.setupSubtext', 'Finalizing configuration...')));
 
 		// Navigation
 		this._navigation = append(this._container, $('.onboarding-navigation'));
@@ -180,7 +180,6 @@ export class OnboardingView extends Disposable {
 			this._finalizingOverlay?.classList.add('visible');
 			try {
 				await importStep.performMigration();
-				// Small delay for professional feel after "Success"
 				await new Promise(resolve => setTimeout(resolve, 800));
 			} catch (e) {
 				// Error handled in ImportStep notification, we can still proceed

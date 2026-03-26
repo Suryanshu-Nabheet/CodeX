@@ -142,16 +142,16 @@ jobs:
           prerelease: false
           name: CodeX Release ${{ github.ref_name }}
           body: |
-            ## CodeX ${{ github.ref_name }} - Production Ready
+            ## CodeX ${{ github.ref_name }}
 
-            A professional, AI-native fork of VS Code.
+            Build based on VS Code.
 
-            ### 💻 Installation Guide
+            ### Installation Guide
             - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`.
             - **macOS (Intel & Apple Silicon)**: Open the `.dmg` and drag **CodeX.app** to your **Applications** folder.
             - **Linux**: Extract `CodeX-linux-x64.tar.gz` and run `./codex`.
 
-            ### 🍎 One-Time macOS Activation
+            ### macOS Activation
             Since CodeX is an unsigned open-source project, macOS may show a "Damaged" warning. 
             **Move CodeX.app to Applications**, then run this in your terminal to enable it:
             `xattr -d com.apple.quarantine /Applications/CodeX.app`
