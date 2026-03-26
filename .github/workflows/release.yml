@@ -39,7 +39,7 @@ jobs:
             binary_dir: VSCode-linux-x64
           - target: win32-x64
             os: windows-latest
-            memory: 6144
+            memory: 8192
             platform: win32
             arch: x64
             artifact: CodeX-win32-x64.zip
@@ -142,17 +142,17 @@ jobs:
           prerelease: false
           name: CodeX Release ${{ github.ref_name }}
           body: |
-            ## CodeX ${{ github.ref_name }}
+            ## CodeX ${{ github.ref_name }} - Production Ready
 
-            A production-ready AI-native fork of VS Code.
+            A professional, AI-native fork of VS Code.
 
-            ### Installation
-            - **Windows**: Unzip and run `codex.exe`.
-            - **macOS**: Open the `.dmg` and drag **CodeX.app** to your **Applications** folder.
-            - **Linux**: Extract and run `./codex`.
+            ### 💻 Installation Guide
+            - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`.
+            - **macOS (Intel & Apple Silicon)**: Open the `.dmg` and drag **CodeX.app** to your **Applications** folder.
+            - **Linux**: Extract `CodeX-linux-x64.tar.gz` and run `./codex`.
 
-            ### One-Time macOS Activation
-            Since CodeX is an unsigned open-source project, macOS may show a "Damaged" warning.
+            ### 🍎 One-Time macOS Activation
+            Since CodeX is an unsigned open-source project, macOS may show a "Damaged" warning. 
             **Move CodeX.app to Applications**, then run this in your terminal to enable it:
             `xattr -d com.apple.quarantine /Applications/CodeX.app`
           generate_release_notes: true
