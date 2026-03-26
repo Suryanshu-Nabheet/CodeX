@@ -260,7 +260,7 @@ cat > CodeXApp.AppDir/usr/share/metainfo/codex.appdata.xml << APPDATA_EOF
   </description>
   <launchable type="desktop-id">codex.desktop</launchable>
   <url type="homepage">https://codex.dev</url>
-  <developer_name>CodeX Team</developer_name>
+  <developer_name>Suryanshu Nabheet</developer_name>
   <provides>
     <binary>codex</binary>
   </provides>

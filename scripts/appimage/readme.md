@@ -211,5 +211,5 @@ This script is provided "as is" under the same license as the main CodeX project
 ---
 
 <p align="center">
-  Made with ❤️ by the CodeX Team
+  Made with ❤️ by the Suryanshu Nabheet
 </p>

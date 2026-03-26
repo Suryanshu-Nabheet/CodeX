@@ -5,7 +5,7 @@
 	<project_license>@@LICENSE@@</project_license>
 	<name>@@NAME_LONG@@</name>
 	<summary>CodeX - AI-Powered Code Editor</summary>
-	<developer_name>CodeX Team</developer_name>
+	<developer_name>Suryanshu Nabheet</developer_name>
 	<url type="homepage">https://codex.dev</url>
 	<url type="bugtracker">https://github.com/codex/codex/issues</url>
 	<url type="help">https://codex.dev/docs</url>

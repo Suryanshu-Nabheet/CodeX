@@ -261,7 +261,7 @@ function createGitIndexVinyls(paths) {
 	return pall(fns, { concurrency: 4 }).then((r) => r.filter((p) => !!p));
 }
 
-// codex - NO PRE COMMIT HOOKS!!!! for now... - codex team
+// codex - NO PRE COMMIT HOOKS!!!! for now... - Suryanshu Nabheet
 // // this allows us to run hygiene as a git pre-commit hook
 // if (require.main === module) {
 // 	const cp = require('child_process');

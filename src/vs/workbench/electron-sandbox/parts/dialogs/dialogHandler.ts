@@ -70,22 +70,30 @@ export class NativeDialogHandler extends AbstractDialogHandler {
 	}
 
 	async about(): Promise<void> {
-		let version = this.productService.version;
+		// CodeX product version (e.g. 0.0.1)
+		const codexVersion = this.productService.codexVersion || this.productService.version;
+
+		// VS Code base version this CodeX build is based on (e.g. 1.99.3)
+		let baseVersion = this.productService.version;
 		if (this.productService.target) {
-			version = `${version} (${this.productService.target} setup)`;
+			baseVersion = `${baseVersion} (${this.productService.target} setup)`;
 		} else if (this.productService.darwinUniversalAssetId) {
-			version = `${version} (Universal)`;
+			baseVersion = `${baseVersion} (Universal)`;
 		}
 
 		const osProps = await this.nativeHostService.getOSProperties();
 
 		const detailString = (useAgo: boolean): string => {
-			return localize({ key: 'aboutDetail', comment: ['Electron, Chromium, Node.js and V8 are product names that need no translation'] },
-				"Code Version: {0}\nCodex Version: {1}\nCommit: {2}\nDate: {3}\nElectron: {4}\nElectronBuildId: {5}\nChromium: {6}\nNode.js: {7}\nV8: {8}\nOS: {9}",
-				version,
-				this.productService.codexVersion || 'Unknown',
-				this.productService.commit || 'Unknown',
-				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
+			const commitShort = this.productService.commit ? this.productService.commit.slice(0, 8) : 'Unknown';
+			return localize(
+				{ key: 'aboutDetail', comment: ['Electron, Chromium, Node.js and V8 are product names that need no translation'] },
+				"CodeX Version: {0}\nBased on VS Code: {1}\nCommit: {2}\nDate: {3}\nElectron: {4}\nElectronBuildId: {5}\nChromium: {6}\nNode.js: {7}\nV8: {8}\nOS: {9}",
+				codexVersion,
+				baseVersion,
+				commitShort,
+				this.productService.date
+					? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}`
+					: 'Unknown',
 				process.versions['electron'],
 				process.versions['microsoft-build'],
 				process.versions['chrome'],
