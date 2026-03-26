@@ -9,8 +9,7 @@ import { IEnvironmentMainService } from '../../environment/electron-main/environ
 import { ILifecycleMainService } from '../../lifecycle/electron-main/lifecycleMainService.js';
 import { ILogService } from '../../log/common/log.js';
 import { IProductService } from '../../product/common/productService.js';
-import { asText } from '../../request/common/request.js';
-import { IRequestService } from '../../request/common/request.js';
+import { asText, IRequestService } from '../../request/common/request.js';
 import { IUpdate, State, StateType, UpdateType, DisablementReason } from '../common/update.js';
 import { AbstractUpdateService } from './abstractUpdateService.js';
 import { shell } from 'electron';
