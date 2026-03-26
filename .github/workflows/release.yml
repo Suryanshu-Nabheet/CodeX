@@ -97,23 +97,18 @@ jobs:
       - name: Build CodeX React UI
         run: cd src/vs/workbench/contrib/codex/browser/react && node build.js
 
-      # Step 1: Compile source to out-build/ (what gulp expects)
       - name: Compile Source (out-build)
         run: npx gulp compile-build-without-mangling
 
-      # Step 2: Compile non-native extensions into .build/extensions/
       - name: Compile Non-Native Extensions
         run: npx gulp compile-non-native-extensions-build
 
-      # Step 3: Compile extension media
       - name: Compile Extension Media
         run: npx gulp compile-extension-media-build
 
-      # Step 4: Bundle compiled source into out-vscode/
       - name: Bundle VSCode Core
         run: npx gulp bundle-vscode
 
-      # Step 5: Package final binary using -ci task (skips recompilation)
       - name: Package CodeX (${{ matrix.target }})
         run: npx gulp vscode-${{ matrix.platform }}-${{ matrix.arch }}-ci
 
@@ -126,9 +121,15 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: cd ../${{ matrix.binary_dir }} && tar -czf ../${{ matrix.artifact }} .
 
+      - name: Ad-hoc codesign (.app)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          find ../${{ matrix.binary_dir }} -type f -name "*.node" -exec codesign --force --deep --sign - {} \; || true
+          codesign --force --deep --sign - ../${{ matrix.binary_dir }}/CodeX.app || true
+
       - name: Package Artifact (macOS)
         if: startsWith(matrix.os, 'macos')
-        run: cd ../${{ matrix.binary_dir }} && zip -r ../${{ matrix.artifact }} .
+        run: ditto -c -k --sequesterRsrc ../${{ matrix.binary_dir }}/CodeX.app ../${{ matrix.artifact }}
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
@@ -147,4 +148,9 @@ jobs:
             - **macOS (Intel)**: Unzip `CodeX-darwin-x64.zip` and open `CodeX.app`
             - **macOS (Apple Silicon)**: Unzip `CodeX-darwin-arm64.zip` and open `CodeX.app`
             - **Linux**: Extract `CodeX-linux-x64.tar.gz` and run `./codex`
+
+            ### Troubleshooting (macOS)
+            If you see "CodeX is damaged and can't be opened":
+            macOS blocks unsigned apps. To fix this, move **CodeX.app** to your Applications folder and run:
+            `xattr -d com.apple.quarantine /Applications/CodeX.app`
           generate_release_notes: true
