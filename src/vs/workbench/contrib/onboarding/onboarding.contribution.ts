@@ -20,10 +20,7 @@ class OnboardingContribution extends Disposable implements IWorkbenchContributio
 
 	private maybeShowOnboarding(): void {
 		if (!this.onboardingService.state.completed) {
-			// Delay slightly to ensure layout is ready
-			setTimeout(() => {
-				this.onboardingService.show();
-			}, 1000);
+			this.onboardingService.show();
 		}
 	}
 }
@@ -34,7 +31,7 @@ registerSingleton(IOnboardingService, OnboardingService, InstantiationType.Eager
 // Register Contribution
 Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench).registerWorkbenchContribution(
 	OnboardingContribution,
-	LifecyclePhase.Eventually
+	LifecyclePhase.Restored
 );
 
 // Register Reset Command

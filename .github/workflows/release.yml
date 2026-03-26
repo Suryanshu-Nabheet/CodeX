@@ -21,14 +21,14 @@ jobs:
             memory: 12288
             platform: darwin
             arch: x64
-            artifact: CodeX-darwin-x64.zip
+            artifact: CodeX-darwin-x64.dmg
             binary_dir: VSCode-darwin-x64
           - target: mac-arm64
             os: macos-latest
             memory: 12288
             platform: darwin
             arch: arm64
-            artifact: CodeX-darwin-arm64.zip
+            artifact: CodeX-darwin-arm64.dmg
             binary_dir: VSCode-darwin-arm64
           - target: linux-x64
             os: ubuntu-latest
@@ -124,12 +124,15 @@ jobs:
       - name: Ad-hoc codesign (.app)
         if: startsWith(matrix.os, 'macos')
         run: |
-          find ../${{ matrix.binary_dir }} -type f -name "*.node" -exec codesign --force --deep --sign - {} \; || true
           codesign --force --deep --sign - ../${{ matrix.binary_dir }}/CodeX.app || true
 
-      - name: Package Artifact (macOS)
+      - name: Create DMG (macOS)
         if: startsWith(matrix.os, 'macos')
-        run: ditto -c -k --sequesterRsrc ../${{ matrix.binary_dir }}/CodeX.app ../${{ matrix.artifact }}
+        run: |
+          mkdir -p dmg_root
+          cp -R ../${{ matrix.binary_dir }}/CodeX.app dmg_root/
+          ln -s /Applications dmg_root/Applications
+          hdiutil create -volname "CodeX" -srcfolder dmg_root -ov -format UDZO ../${{ matrix.artifact }}
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
@@ -144,13 +147,12 @@ jobs:
             A production-ready AI-native fork of VS Code.
 
             ### Installation
-            - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`
-            - **macOS (Intel)**: Unzip `CodeX-darwin-x64.zip` and open `CodeX.app`
-            - **macOS (Apple Silicon)**: Unzip `CodeX-darwin-arm64.zip` and open `CodeX.app`
-            - **Linux**: Extract `CodeX-linux-x64.tar.gz` and run `./codex`
+            - **Windows**: Unzip and run `codex.exe`.
+            - **macOS**: Open the `.dmg` and drag **CodeX.app** to your **Applications** folder.
+            - **Linux**: Extract and run `./codex`.
 
-            ### Troubleshooting (macOS)
-            If you see "CodeX is damaged and can't be opened":
-            macOS blocks unsigned apps. To fix this, move **CodeX.app** to your Applications folder and run:
+            ### 🚀 One-Time macOS Activation
+            Since CodeX is an unsigned open-source project, macOS may show a "Damaged" warning. 
+            **Move CodeX.app to Applications**, then run this in your terminal to enable it:
             `xattr -d com.apple.quarantine /Applications/CodeX.app`
           generate_release_notes: true
