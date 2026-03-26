@@ -19,31 +19,36 @@ jobs:
           - target: mac-x64
             os: macos-latest
             memory: 12288
-            task: vscode-darwin-x64
+            platform: darwin
+            arch: x64
             artifact: CodeX-darwin-x64.zip
             binary_dir: VSCode-darwin-x64
           - target: mac-arm64
             os: macos-latest
             memory: 12288
-            task: vscode-darwin-arm64
+            platform: darwin
+            arch: arm64
             artifact: CodeX-darwin-arm64.zip
             binary_dir: VSCode-darwin-arm64
           - target: linux-x64
             os: ubuntu-latest
             memory: 12288
-            task: vscode-linux-x64
+            platform: linux
+            arch: x64
             artifact: CodeX-linux-x64.tar.gz
             binary_dir: VSCode-linux-x64
           - target: win32-x64
             os: windows-latest
             memory: 6144
-            task: vscode-win32-x64
+            platform: win32
+            arch: x64
             artifact: CodeX-win32-x64.zip
             binary_dir: VSCode-win32-x64
 
     env:
       NODE_OPTIONS: "--max-old-space-size=${{ matrix.memory }}"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout CodeX
@@ -88,21 +93,29 @@ jobs:
 
       - name: Install Dependencies
         run: npm install --no-audit
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build CodeX React UI
         run: cd src/vs/workbench/contrib/codex/browser/react && node build.js
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compile CodeX Core
-        run: npm run compile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Step 1: Compile source to out-build/ (what gulp expects)
+      - name: Compile Source (out-build)
+        run: npx gulp compile-build-without-mangling
 
-      - name: Build CodeX Artifact
-        run: npx gulp ${{ matrix.task }}
+      # Step 2: Compile non-native extensions into .build/extensions/
+      - name: Compile Non-Native Extensions
+        run: npx gulp compile-non-native-extensions-build
+
+      # Step 3: Compile extension media
+      - name: Compile Extension Media
+        run: npx gulp compile-extension-media-build
+
+      # Step 4: Bundle compiled source into out-vscode/
+      - name: Bundle VSCode Core
+        run: npx gulp bundle-vscode
+
+      # Step 5: Package final binary using -ci task (skips recompilation)
+      - name: Package CodeX (${{ matrix.target }})
+        run: npx gulp vscode-${{ matrix.platform }}-${{ matrix.arch }}-ci
 
       - name: Package Artifact (Windows)
         if: matrix.os == 'windows-latest'
@@ -125,15 +138,13 @@ jobs:
           prerelease: false
           name: CodeX Release ${{ github.ref_name }}
           body: |
-            ## Release ${{ github.ref_name }}
+            ## CodeX ${{ github.ref_name }}
 
-            Published on: ${{ github.event.head_commit.timestamp }}
+            A production-ready AI-native fork of VS Code.
 
-            ### Installation:
-            - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`.
-            - **macOS (Intel)**: Unzip `CodeX-darwin-x64.zip`.
-            - **macOS (Apple Silicon)**: Unzip `CodeX-darwin-arm64.zip`.
-            - **Linux**: Extract `CodeX-linux-x64.tar.gz` and run `./codex`.
+            ### Installation
+            - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`
+            - **macOS (Intel)**: Unzip `CodeX-darwin-x64.zip` and open `CodeX.app`
+            - **macOS (Apple Silicon)**: Unzip `CodeX-darwin-arm64.zip` and open `CodeX.app`
+            - **Linux**: Extract `CodeX-linux-x64.tar.gz` and run `./codex`
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
