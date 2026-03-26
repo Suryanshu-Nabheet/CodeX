@@ -22,10 +22,6 @@ import { IJSONSchema } from '../../base/common/jsonSchema.js';
 import { InstallShellScriptAction, UninstallShellScriptAction } from './actions/installActions.js';
 import { EditorsVisibleContext, SingleEditorGroupsContext } from '../common/contextkeys.js';
 import { TELEMETRY_SETTING_ID } from '../../platform/telemetry/common/telemetry.js';
-import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
-import { ShutdownReason } from '../services/lifecycle/common/lifecycle.js';
-import { NativeWindow } from './window.js';
-import { ModifierKeyEmitter } from '../../base/browser/dom.js';
 import { applicationConfigurationNodeBase, securityConfigurationNodeBase } from '../common/configuration.js';
 import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-sandbox/window.js';
 import { DefaultAccountManagementContribution } from '../services/accounts/common/defaultAccount.js';
@@ -69,16 +65,6 @@ import { registerWorkbenchContribution2, WorkbenchPhase } from '../common/contri
 		weight: KeybindingWeight.WorkbenchContrib,
 		async handler(accessor: ServicesAccessor) {
 			const nativeHostService = accessor.get(INativeHostService);
-			const configurationService = accessor.get(IConfigurationService);
-
-			const confirmBeforeClose = configurationService.getValue<'always' | 'never' | 'keyboardOnly'>('window.confirmBeforeClose');
-			if (confirmBeforeClose === 'always' || (confirmBeforeClose === 'keyboardOnly' && ModifierKeyEmitter.getInstance().isModifierPressed)) {
-				const confirmed = await NativeWindow.confirmOnShutdown(accessor, ShutdownReason.QUIT);
-				if (!confirmed) {
-					return; // quit prevented by user
-				}
-			}
-
 			nativeHostService.quit();
 		},
 		when: undefined,
