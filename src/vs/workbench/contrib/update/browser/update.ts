@@ -393,20 +393,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 	}
 
 	private shouldShowNotification(): boolean {
-		const currentVersion = this.productService.commit;
-		const currentMillis = new Date().getTime();
-		const lastKnownVersion = this.storageService.get('update/lastKnownVersion', StorageScope.APPLICATION);
-
-		// if version != stored version, save version and date
-		if (currentVersion !== lastKnownVersion) {
-			this.storageService.store('update/lastKnownVersion', currentVersion, StorageScope.APPLICATION, StorageTarget.MACHINE);
-			this.storageService.store('update/updateNotificationTime', currentMillis, StorageScope.APPLICATION, StorageTarget.MACHINE);
-		}
-
-		const updateNotificationMillis = this.storageService.getNumber('update/updateNotificationTime', StorageScope.APPLICATION, currentMillis);
-		const diffDays = (currentMillis - updateNotificationMillis) / (1000 * 60 * 60 * 24);
-
-		return diffDays > 5;
+		return true;
 	}
 
 	private registerGlobalActivityActions(): void {

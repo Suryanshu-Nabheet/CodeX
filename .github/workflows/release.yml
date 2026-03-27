@@ -94,6 +94,19 @@ jobs:
       - name: Install Dependencies
         run: npm install --no-audit
 
+      - name: Stamp version into product.json
+        shell: bash
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "Stamping codexVersion=${VERSION} into product.json"
+          node -e "
+            const fs = require('fs');
+            const p = JSON.parse(fs.readFileSync('product.json', 'utf8'));
+            p.codexVersion = '${VERSION}';
+            fs.writeFileSync('product.json', JSON.stringify(p, null, '\t'));
+          "
+
       - name: Build CodeX React UI
         run: cd src/vs/workbench/contrib/codex/browser/react && node build.js
 
