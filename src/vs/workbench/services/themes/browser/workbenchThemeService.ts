@@ -47,7 +47,7 @@ import { mainWindow } from '../../../../base/browser/window.js';
 
 const defaultThemeExtensionId = 'vscode-theme-defaults';
 
-const DEFAULT_FILE_ICON_THEME_ID = 'codex-theme-CodeX Icon Theme';
+const DEFAULT_FILE_ICON_THEME_ID = 'Suryanshu-Nabheet.codex-theme-CodeX Icon Theme';
 const fileIconsEnabledClass = 'file-icons-enabled';
 
 const colorThemeRulesClassName = 'contributedColorTheme';
@@ -320,7 +320,8 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 			} else if (event.removed.some(t => t.settingsId === this.currentFileIconTheme.settingsId)) {
 				// current theme is no longer available
 				prevFileIconId = this.currentFileIconTheme.id;
-				await this.setFileIconTheme(DEFAULT_FILE_ICON_THEME_ID, 'auto');
+				const fallbackTheme = this.fileIconThemeRegistry.findThemeBySettingsId(ThemeSettingDefaults.FILE_ICON_THEME);
+				await this.setFileIconTheme(fallbackTheme ? fallbackTheme.id : DEFAULT_FILE_ICON_THEME_ID, 'auto');
 			}
 
 		})));
@@ -580,7 +581,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				newThemeData = iconThemeOrId;
 			}
 			if (!newThemeData) {
-				newThemeData = FileIconThemeData.noIconTheme;
+				newThemeData = this.fileIconThemeRegistry.findThemeBySettingsId(ThemeSettingDefaults.FILE_ICON_THEME) || FileIconThemeData.noIconTheme;
 			}
 			await newThemeData.ensureLoaded(this.fileIconThemeLoader);
 
