@@ -339,10 +339,10 @@
 					},
 					"markdownDescription": "Replaces `$severity` variable in `#codexErrorLens.messageTemplate#`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensseveritytext)",
 					"default": [
-						"⛔",
-						"⚠",
-						"ℹ",
-						"🍏"
+						"ERROR",
+						"WARNING",
+						"INFO",
+						"HINT"
 					],
 					"minItems": 4,
 					"maxItems": 4

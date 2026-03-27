@@ -2,7 +2,7 @@
   "name": "codex-project-tree",
   "displayName": "Codex Project Tree",
   "publisher": "Suryanshu-Nabheet",
-  "description": "A production-grade project tree generator for README.md, built by Suryanshu Nabheet.",
+  "description": "Technical project tree generator for README.md.",
   "version": "0.0.1",
   "icon": "images/tree-icon.jpg",
   "author": "Suryanshu Nabheet",
