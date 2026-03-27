@@ -3,6 +3,8 @@
 	"nameLong": "CodeX",
 	"applicationName": "codex",
 	"urlProtocol": "codex",
+	"updateUrl": "https://github.com/Suryanshu-Nabheet/CodeX",
+	"commit": "dev",
 	"codexVersion": "0.0.1",
 	"codexRelease": "0001",
 	"copyright": "Copyright (c) 2026 Suryanshu Nabheet. All rights reserved.",

@@ -12,8 +12,7 @@ import { INotificationActions, INotificationHandle, INotificationService } from 
 import { IMetricsService } from '../common/metricsService.js';
 import { ICodexUpdateService } from '../common/codexUpdateService.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
-import * as dom from '../../../../base/browser/dom.js';
-import { IUpdateService } from '../../../../platform/update/common/update.js';
+import { IUpdateService, StateType } from '../../../../platform/update/common/update.js';
 import { CodexCheckUpdateRespose } from '../common/codexUpdateServiceTypes.js';
 import { IAction } from '../../../../base/common/actions.js';
 
@@ -29,36 +28,19 @@ const notifyUpdate = (
 	const message = res.message;
 
 	let actions: INotificationActions | undefined;
+	let notifController: INotificationHandle;
 
 	if (res.action) {
 		const primary: IAction[] = [];
-
-		/** Open the GitHub releases page in the default browser */
-		const openDownloadPage = () => {
-			const { window } = dom.getActiveWindow();
-			window.open(GITHUB_RELEASES_URL);
-		};
-
-		if (res.action === 'reinstall') {
-			primary.push({
-				label: 'Download Update',
-				id: 'codex.updater.reinstall',
-				enabled: true,
-				tooltip: 'Open the CodeX download page',
-				class: undefined,
-				run: openDownloadPage,
-			});
-		}
 
 		if (res.action === 'download') {
 			primary.push({
 				label: 'Download Update',
 				id: 'codex.updater.download',
 				enabled: true,
-				tooltip: 'Download the latest update',
+				tooltip: 'Download the latest update in the background',
 				class: undefined,
 				run: () => {
-					// doDownloadUpdate opens the browser and transitions state
 					updateService.downloadUpdate();
 				},
 			});
@@ -86,25 +68,29 @@ const notifyUpdate = (
 			});
 		}
 
-		// Always include a GitHub repo link
-		primary.push({
-			id: 'codex.updater.site',
-			enabled: true,
-			label: 'GitHub Releases',
-			tooltip: 'Open the CodeX GitHub releases page',
-			class: undefined,
-			run: () => {
-				const { window } = dom.getActiveWindow();
-				window.open(GITHUB_RELEASES_URL);
-			},
-		});
+		// Fallback for platforms that cannot self-update (Windows zip)
+		if (res.action === 'reinstall') {
+			primary.push({
+				label: 'Download Update',
+				id: 'codex.updater.reinstall',
+				enabled: true,
+				tooltip: 'Open the CodeX releases page to download the latest version',
+				class: undefined,
+				run: () => {
+					import('electron').then(({ shell }) => shell.openExternal(GITHUB_RELEASES_URL)).catch(() => {
+						const win = window as any;
+						if (win.open) { win.open(GITHUB_RELEASES_URL); }
+					});
+				},
+			});
+		}
 
 		actions = {
 			primary,
 			secondary: [{
 				id: 'codex.updater.dismiss',
 				enabled: true,
-				label: 'Dismiss',
+				label: 'Later',
 				tooltip: 'Dismiss this notification',
 				class: undefined,
 				run: () => { notifController.close(); },
@@ -112,7 +98,7 @@ const notifyUpdate = (
 		};
 	}
 
-	const notifController = notifService.notify({
+	notifController = notifService.notify({
 		severity: Severity.Info,
 		message,
 		sticky: true,
@@ -124,9 +110,8 @@ const notifyUpdate = (
 
 const notifyErrChecking = (notifService: INotificationService): INotificationHandle => {
 	const message = [
-		'**CodeX Update Check Failed**',
-		`There was an error checking for updates.`,
-		`If this persists, please check [GitHub releases](${GITHUB_RELEASES_URL}) for the latest version.`,
+		'**Update check failed.**',
+		`If this persists, check [GitHub releases](${GITHUB_RELEASES_URL}) for the latest version.`,
 	].join('  \n');
 
 	return notifService.notify({
@@ -169,7 +154,58 @@ const performCodexCheck = async (
 };
 
 
-// ─── Command: Codex: Check for Updates ───────────────────────────────────────
+// ─── Auto-progress: when UpdateService state becomes Downloading/Ready, update the notification ───
+
+const watchUpdateProgress = (
+	updateService: IUpdateService,
+	notifService: INotificationService,
+	contribution: CodexUpdateWorkbenchContribution,
+): void => {
+	updateService.onStateChange(async state => {
+		// When download completes and we're ready to restart, replace the existing notification
+		if (state.type === StateType.Ready) {
+			CodexUpdateWorkbenchContribution.lastNotifHandle?.close();
+			const msg = 'Update downloaded. Restart to apply.';
+			const primary: IAction[] = [{
+				label: 'Restart to Update',
+				id: 'codex.updater.restart.auto',
+				enabled: true,
+				tooltip: 'Restart CodeX to apply the update',
+				class: undefined,
+				run: () => updateService.quitAndInstall(),
+			}];
+			CodexUpdateWorkbenchContribution.lastNotifHandle = notifService.notify({
+				severity: Severity.Info,
+				message: msg,
+				sticky: true,
+				actions: {
+					primary,
+					secondary: [{
+						id: 'codex.updater.dismiss.ready',
+						enabled: true,
+						label: 'Later',
+						tooltip: 'Dismiss',
+						class: undefined,
+						run: () => { CodexUpdateWorkbenchContribution.lastNotifHandle?.close(); },
+					}],
+				},
+			});
+		}
+
+		// When download is in progress, show a transient notification
+		if (state.type === StateType.Downloading) {
+			CodexUpdateWorkbenchContribution.lastNotifHandle?.close();
+			CodexUpdateWorkbenchContribution.lastNotifHandle = notifService.notify({
+				severity: Severity.Info,
+				message: 'Downloading update...',
+				sticky: false,
+			});
+		}
+	});
+};
+
+
+// ─── Command: CodeX: Check for Updates ───────────────────────────────────────
 
 registerAction2(class extends Action2 {
 	constructor() {
@@ -186,7 +222,6 @@ registerAction2(class extends Action2 {
 		const metricsService = accessor.get(IMetricsService);
 		const updateService = accessor.get(IUpdateService);
 
-		// Close any stale update notification if we are opening a new one
 		const prevHandle = CodexUpdateWorkbenchContribution.lastNotifHandle;
 		const newHandle = await performCodexCheck(true, notifService, codexUpdateService, metricsService, updateService);
 
@@ -200,7 +235,7 @@ registerAction2(class extends Action2 {
 
 // ─── Workbench contribution: auto-check on startup & every 3 hours ───────────
 
-class CodexUpdateWorkbenchContribution extends Disposable implements IWorkbenchContribution {
+export class CodexUpdateWorkbenchContribution extends Disposable implements IWorkbenchContribution {
 	static readonly ID = 'workbench.contrib.codex.codexUpdate';
 
 	/** Shared across the manual command so we can close stale notifications. */
@@ -213,6 +248,9 @@ class CodexUpdateWorkbenchContribution extends Disposable implements IWorkbenchC
 		@IUpdateService private readonly updateService: IUpdateService,
 	) {
 		super();
+
+		// Watch for background state changes (download progress, ready)
+		watchUpdateProgress(this.updateService, this.notifService, this);
 
 		const autoCheck = async () => {
 			const handle = await performCodexCheck(
@@ -228,15 +266,13 @@ class CodexUpdateWorkbenchContribution extends Disposable implements IWorkbenchC
 			}
 		};
 
-		const { window } = dom.getActiveWindow();
-
-		// First check: 10 s after workbench is ready (enough time for services to settle)
-		const initId = window.setTimeout(() => autoCheck(), 10 * 1000);
-		this._register({ dispose: () => window.clearTimeout(initId) });
+		// First check: 30 s after workbench is ready
+		const initTimer = setTimeout(() => autoCheck(), 30 * 1000);
+		this._register({ dispose: () => clearTimeout(initTimer) });
 
 		// Recurring check every 3 hours
-		const intervalId = window.setInterval(() => autoCheck(), 3 * 60 * 60 * 1000);
-		this._register({ dispose: () => window.clearInterval(intervalId) });
+		const intervalTimer = setInterval(() => autoCheck(), 3 * 60 * 60 * 1000);
+		this._register({ dispose: () => clearInterval(intervalTimer) });
 	}
 }
 
