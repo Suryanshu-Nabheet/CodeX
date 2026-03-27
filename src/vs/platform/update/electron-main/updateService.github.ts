@@ -61,14 +61,7 @@ export class GitHubUpdateService extends AbstractUpdateService {
 		}
 
 		const updateMode = this.configurationService.getValue<'none' | 'manual' | 'start' | 'default'>('update.mode');
-		const quality = this.getProductQuality(updateMode);
-
-		if (!quality) {
-			this.setState(State.Disabled(DisablementReason.ManuallyDisabled));
-			this.logService.info('update#ctor - updates are disabled by user preference');
-			return;
-		}
-
+		const quality = this.productService.quality || 'stable';
 		this.url = this.buildUpdateFeedUrl(quality);
 		this.setState(State.Idle(this.getUpdateType()));
 
@@ -145,6 +138,13 @@ export class GitHubUpdateService extends AbstractUpdateService {
 				};
 				this.logService.info(`GitHubUpdateService: update available (${currentVersion} → ${latestVersion}), asset: ${downloadUrl}`);
 				this.setState(State.AvailableForDownload(update));
+				
+				// Auto-download unless update mode is explicitly manual
+				const updateMode = this.configurationService.getValue<'none' | 'manual' | 'start' | 'default'>('update.mode');
+				if (updateMode !== 'manual' && updateMode !== 'none') {
+					this.logService.info('GitHubUpdateService: triggering automatic background download');
+					this.downloadUpdate();
+				}
 			} else {
 				this.logService.info('GitHubUpdateService: already up to date');
 				this.setState(State.Idle(UpdateType.Archive));

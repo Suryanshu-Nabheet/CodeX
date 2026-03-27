@@ -307,7 +307,7 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 				false,
 				token);
 
-			if (verificationStatus !== ExtensionSignatureVerificationCode.Success && this.environmentService.isBuilt) {
+			if (verificationStatus !== ExtensionSignatureVerificationCode.Success && this.environmentService.isBuilt && verificationStatus) {
 				try {
 					await this.extensionsDownloader.delete(location);
 				} catch (e) {
@@ -342,6 +342,7 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 			&& verifySignature
 			&& this.environmentService.isBuilt
 			&& !(isLinux && this.productService.quality === 'stable')
+			&& verificationStatus // Only enforce if verification was actually performed
 		) {
 			try {
 				await this.extensionsDownloader.delete(location);

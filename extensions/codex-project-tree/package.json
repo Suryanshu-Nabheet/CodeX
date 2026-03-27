@@ -17,16 +17,14 @@
     "directory"
   ],
   "engines": {
-    "vscode": "^1.54.0"
+    "vscode": "^1.99.0"
   },
   "categories": [
     "Other",
     "Visualization"
   ],
   "license": "MIT",
-  "activationEvents": [
-    "onCommand:codex-project-tree.generate"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

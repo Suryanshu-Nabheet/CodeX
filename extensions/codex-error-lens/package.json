@@ -9,7 +9,7 @@
 	},
 	"license": "MIT",
 	"engines": {
-		"vscode": "^1.96.0",
+		"vscode": "^1.99.0",
 		"npm": ">=10.0.0"
 	},
 	"extensionKind": [
@@ -17,6 +17,7 @@
 		"workspace"
 	],
 	"categories": [
+		"Linters",
 		"Other"
 	],
 	"qna": false,
