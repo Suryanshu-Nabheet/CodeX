@@ -47,7 +47,7 @@ import { mainWindow } from '../../../../base/browser/window.js';
 
 const defaultThemeExtensionId = 'vscode-theme-defaults';
 
-const DEFAULT_FILE_ICON_THEME_ID = 'codex-theme.codex-theme-CodeX Icon Theme';
+const DEFAULT_FILE_ICON_THEME_ID = 'codex-theme-CodeX Icon Theme';
 const fileIconsEnabledClass = 'file-icons-enabled';
 
 const colorThemeRulesClassName = 'contributedColorTheme';

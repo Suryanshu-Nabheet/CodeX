@@ -77,7 +77,7 @@ export class FileIconThemeData implements IWorkbenchFileIconTheme {
 	static get noIconTheme(): FileIconThemeData {
 		let themeData = FileIconThemeData._noIconTheme;
 		if (!themeData) {
-			themeData = FileIconThemeData._noIconTheme = new FileIconThemeData('', '', null);
+			themeData = FileIconThemeData._noIconTheme = new FileIconThemeData('codex-theme-CodeX Icon Theme', 'CodeX Icons', null);
 			themeData.hasFileIcons = false;
 			themeData.hasFolderIcons = false;
 			themeData.hidesExplorerArrows = false;
