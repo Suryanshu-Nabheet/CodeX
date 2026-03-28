@@ -7,7 +7,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import Severity from '../../../../base/common/severity.js';
 import { ServicesAccessor } from '../../../../editor/browser/editorExtensions.js';
 import { localize2 } from '../../../../nls.js';
-import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { Action2, registerAction2, MenuId } from '../../../../platform/actions/common/actions.js';
 import { INotificationActions, INotificationHandle, INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IMetricsService } from '../common/metricsService.js';
 import { ICodexUpdateService } from '../common/codexUpdateService.js';
@@ -212,7 +212,12 @@ registerAction2(class extends Action2 {
 		super({
 			f1: true,
 			id: 'codex.codexCheckUpdate',
-			title: localize2('codexCheckUpdate', 'CodeX: Check for Updates'),
+			title: localize2('codexCheckUpdate', 'Check for Updates...'),
+			menu: {
+				id: MenuId.MenubarHelpMenu,
+				group: '5_update',
+				order: 1
+			}
 		});
 	}
 
@@ -270,8 +275,8 @@ export class CodexUpdateWorkbenchContribution extends Disposable implements IWor
 		const initTimer = setTimeout(() => autoCheck(), 30 * 1000);
 		this._register({ dispose: () => clearTimeout(initTimer) });
 
-		// Recurring check every 3 hours
-		const intervalTimer = setInterval(() => autoCheck(), 3 * 60 * 60 * 1000);
+		// Recurring check every 15 minutes for real-time updates
+		const intervalTimer = setInterval(() => autoCheck(), 15 * 60 * 1000);
 		this._register({ dispose: () => clearInterval(intervalTimer) });
 	}
 }
