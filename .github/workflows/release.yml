@@ -37,8 +37,10 @@ jobs:
             arch: x64
             artifact: CodeX-linux-x64.tar.gz
             binary_dir: VSCode-linux-x64
+          # Pin windows-2022: windows-latest ships VS 18, which current
+          # node-gyp cannot resolve ("unknown version undefined").
           - target: win32-x64
-            os: windows-latest
+            os: windows-2022
             memory: 8192
             platform: win32
             arch: x64
@@ -49,6 +51,7 @@ jobs:
       NODE_OPTIONS: "--max-old-space-size=${{ matrix.memory }}"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      npm_config_msvs_version: "2022"
 
     steps:
       - name: Checkout CodeX
@@ -126,7 +129,7 @@ jobs:
         run: npx gulp vscode-${{ matrix.platform }}-${{ matrix.arch }}-ci
 
       - name: Package Artifact (Windows)
-        if: matrix.os == 'windows-latest'
+        if: startsWith(matrix.os, 'windows')
         shell: pwsh
         run: cd ../${{ matrix.binary_dir }}; Compress-Archive -Path * -DestinationPath ../${{ matrix.artifact }}
 
