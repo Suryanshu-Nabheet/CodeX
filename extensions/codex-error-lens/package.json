@@ -2,7 +2,7 @@
 	"name": "codex-error-lens",
 	"displayName": "CodeX Error Lens",
 	"description": "Integrated error highlighting for CodeX. Instantly see errors and warnings directly in your code.",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"publisher": "Suryanshu-Nabheet",
 	"author": {
 		"name": "Suryanshu Nabheet"
@@ -181,7 +181,7 @@
 				"codexErrorLens.fontFamily": {
 					"type": "string",
 					"default": "",
-					"markdownDescription": "Font family of inline message. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensfontfamily). May break `#codexErrorLens.alignMessage#`"
+					"markdownDescription": "Font family of inline message. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensfontfamily). May break `#codexErrorLens.alignMessage#`"
 				},
 				"codexErrorLens.fontWeight": {
 					"type": "string",
@@ -199,22 +199,22 @@
 						"900"
 					],
 					"default": "normal",
-					"markdownDescription": "Font weight of inline message. `\"normal\"` is alias for 400, `\"bold\"` is alias for 700). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensfontweight)"
+					"markdownDescription": "Font weight of inline message. `\"normal\"` is alias for 400, `\"bold\"` is alias for 700). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensfontweight)"
 				},
 				"codexErrorLens.fontStyleItalic": {
 					"type": "boolean",
 					"default": false,
-					"markdownDescription": "When enabled - shows inline message in italic font style. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensfontstyleitalic)"
+					"markdownDescription": "When enabled - shows inline message in italic font style. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensfontstyleitalic)"
 				},
 				"codexErrorLens.fontSize": {
 					"type": "string",
 					"default": "",
-					"markdownDescription": "Font size of inline message ([CSS units](https://developer.mozilla.org/en-US/docs/Web/CSS/length)). Use negative value to have it relative to the editor's fontSize (e.g. `-3px`). May break `#codexErrorLens.alignMessage#`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensfontsize)."
+					"markdownDescription": "Font size of inline message ([CSS units](https://developer.mozilla.org/en-US/docs/Web/CSS/length)). Use negative value to have it relative to the editor's fontSize (e.g. `-3px`). May break `#codexErrorLens.alignMessage#`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensfontsize)."
 				},
 				"codexErrorLens.margin": {
 					"type": "string",
 					"default": "4ch",
-					"markdownDescription": "Distance between the last word on the line and the start of inline message ([CSS units](https://developer.mozilla.org/en-US/docs/Web/CSS/length)). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensmargin)"
+					"markdownDescription": "Distance between the last word on the line and the start of inline message ([CSS units](https://developer.mozilla.org/en-US/docs/Web/CSS/length)). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensmargin)"
 				},
 				"codexErrorLens.alignMessage": {
 					"type": "object",
@@ -265,7 +265,7 @@
 						],
 						"useFixedPosition": true
 					},
-					"markdownDescription": "Align inline error message (either by starting position or ending position). Only works for monospace fonts. Set \"start\" and \"end\" to **0** to disable. ❗Will conflict with other extension decorations. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensalignmessage)",
+					"markdownDescription": "Align inline error message (either by starting position or ending position). Only works for monospace fonts. Set \"start\" and \"end\" to **0** to disable. ❗Will conflict with other extension decorations. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensalignmessage)",
 					"additionalProperties": false
 				},
 				"codexErrorLens.border": {
@@ -283,12 +283,12 @@
 					"minItems": 4,
 					"maxItems": 4,
 					"additionalItems": false,
-					"markdownDescription": "Border of the inline message. Examples: `1px solid`, `1px dashed`, `2px dotted`, `1px solid #00000050`... Set to empty string to disable. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensborder)"
+					"markdownDescription": "Border of the inline message. Examples: `1px solid`, `1px dashed`, `2px dotted`, `1px solid #00000050`... Set to empty string to disable. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensborder)"
 				},
 				"codexErrorLens.padding": {
 					"type": "string",
 					"default": "",
-					"markdownDescription": "Padding of the inline message. Visible when `#codexErrorLens.messageBackgroundMode#` is set to \"message\". [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenspadding)",
+					"markdownDescription": "Padding of the inline message. Visible when `#codexErrorLens.messageBackgroundMode#` is set to \"message\". [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenspadding)",
 					"examples": [
 						"2px 1ch"
 					]
@@ -296,7 +296,7 @@
 				"codexErrorLens.borderRadius": {
 					"type": "string",
 					"default": "0.2em",
-					"markdownDescription": "Border radius of the inline message. Visible when `#codexErrorLens.messageBackgroundMode#` is set to \"message\". [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensborderradius)",
+					"markdownDescription": "Border radius of the inline message. Visible when `#codexErrorLens.messageBackgroundMode#` is set to \"message\". [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensborderradius)",
 					"examples": [
 						"5px",
 						"5em 0px",
@@ -315,7 +315,7 @@
 						]
 					},
 					"uniqueItems": true,
-					"markdownDescription": "Customize which diagnostic levels(severity) to highlight. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensenableddiagnosticlevels)",
+					"markdownDescription": "Customize which diagnostic levels(severity) to highlight. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensenableddiagnosticlevels)",
 					"default": [
 						"error",
 						"warning",
@@ -325,20 +325,20 @@
 				"codexErrorLens.messageTemplate": {
 					"type": "string",
 					"default": "$message",
-					"markdownDescription": "Template used for all inline messages. Whitespace between items is important.\n\nList of variables:\n\n- `$message` - diagnostic message text\n\n- `$count` - Number of diagnostics on the line\n\n- `$severity` - Severity prefix taken from `#codexErrorLens.severityText#`\n\n- `$source` - Source of diagnostic e.g. \"eslint\"\n\n- `$code` - Code of the diagnostic [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensmessagetemplate)"
+					"markdownDescription": "Template used for all inline messages. Whitespace between items is important.\n\nList of variables:\n\n- `$message` - diagnostic message text\n\n- `$count` - Number of diagnostics on the line\n\n- `$severity` - Severity prefix taken from `#codexErrorLens.severityText#`\n\n- `$source` - Source of diagnostic e.g. \"eslint\"\n\n- `$code` - Code of the diagnostic [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensmessagetemplate)"
 				},
 				"codexErrorLens.messageMaxChars": {
 					"type": "integer",
 					"default": 500,
 					"minimum": 0,
-					"markdownDescription": "Cut off inline message if it's longer than this value. (Improves performance when the diagnostic message is long). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensmessagemaxchars)"
+					"markdownDescription": "Cut off inline message if it's longer than this value. (Improves performance when the diagnostic message is long). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensmessagemaxchars)"
 				},
 				"codexErrorLens.severityText": {
 					"type": "array",
 					"items": {
 						"type": "string"
 					},
-					"markdownDescription": "Replaces `$severity` variable in `#codexErrorLens.messageTemplate#`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensseveritytext)",
+					"markdownDescription": "Replaces `$severity` variable in `#codexErrorLens.messageTemplate#`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensseveritytext)",
 					"default": [
 						"ERROR",
 						"WARNING",
@@ -351,7 +351,7 @@
 				"codexErrorLens.messageEnabled": {
 					"type": "boolean",
 					"default": true,
-					"markdownDescription": "Controls whether inline message is shown or not (Including background highlight). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensmessageenabled)"
+					"markdownDescription": "Controls whether inline message is shown or not (Including background highlight). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensmessageenabled)"
 				},
 				"codexErrorLens.messageBackgroundMode": {
 					"type": "string",
@@ -366,12 +366,12 @@
 						"Inline message is highlighted.",
 						"Message is not highlighted (only has foreground colors)."
 					],
-					"markdownDescription": "Controls how inline message is highlighted in the editor (entire line / only message / none). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensmessagebackgroundmode)"
+					"markdownDescription": "Controls how inline message is highlighted in the editor (entire line / only message / none). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensmessagebackgroundmode)"
 				},
 				"codexErrorLens.problemRangeDecorationEnabled": {
 					"type": "boolean",
 					"default": false,
-					"markdownDescription": "When checked - highlight the entire problem range. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensproblemrangedecorationenabled)"
+					"markdownDescription": "When checked - highlight the entire problem range. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensproblemrangedecorationenabled)"
 				},
 				"codexErrorLens.editorHoverPartsEnabled": {
 					"type": "object",
@@ -399,7 +399,7 @@
 				},
 				"codexErrorLens.statusBarIconsEnabled": {
 					"type": "boolean",
-					"markdownDescription": "When enabled - shows highlighted error/warning icons in status bar. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensstatusbariconsenabled)",
+					"markdownDescription": "When enabled - shows highlighted error/warning icons in status bar. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensstatusbariconsenabled)",
 					"default": false
 				},
 				"codexErrorLens.statusBarIconsPriority": {
@@ -447,7 +447,7 @@
 				},
 				"codexErrorLens.statusBarMessageEnabled": {
 					"type": "boolean",
-					"markdownDescription": "When enabled - shows message in status bar. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensstatusbarmessageenabled)",
+					"markdownDescription": "When enabled - shows message in status bar. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensstatusbarmessageenabled)",
 					"default": false
 				},
 				"codexErrorLens.statusBarMessagePriority": {
@@ -466,7 +466,7 @@
 				},
 				"codexErrorLens.statusBarColorsEnabled": {
 					"type": "boolean",
-					"markdownDescription": "When enabled - use message decoration foreground as color of Status Bar text. Uses colors `codexErrorLens.statusBarErrorForeground`, `codexErrorLens.statusBarWarningForeground`, `codexErrorLens.statusBarInfoForeground`, `codexErrorLens.statusBarHintForeground`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensstatusbarcolorsenabled)",
+					"markdownDescription": "When enabled - use message decoration foreground as color of Status Bar text. Uses colors `codexErrorLens.statusBarErrorForeground`, `codexErrorLens.statusBarWarningForeground`, `codexErrorLens.statusBarInfoForeground`, `codexErrorLens.statusBarHintForeground`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensstatusbarcolorsenabled)",
 					"default": false
 				},
 				"codexErrorLens.statusBarMessageType": {
@@ -521,7 +521,7 @@
 							"message"
 						]
 					},
-					"markdownDescription": "Specify message to transform. E.g. if this is configured to [{ matcher: 'foo (.*)', message: 'just $1' }], the message 'foo bar' would be displayed as 'just bar'. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensreplace)"
+					"markdownDescription": "Specify message to transform. E.g. if this is configured to [{ matcher: 'foo (.*)', message: 'just $1' }], the message 'foo bar' would be displayed as 'just bar'. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensreplace)"
 				},
 				"codexErrorLens.transmute": {
 					"type": "object",
@@ -939,7 +939,7 @@
 				},
 				"codexErrorLens.enableOnDiffView": {
 					"type": "boolean",
-					"markdownDescription": "Enable decorations when viewing a diff view in the editor (e.g. Git diff). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensenableondiffview)",
+					"markdownDescription": "Enable decorations when viewing a diff view in the editor (e.g. Git diff). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensenableondiffview)",
 					"default": false
 				},
 				"codexErrorLens.followCursor": {
@@ -956,27 +956,27 @@
 						"Highlight only the problem at the cursor",
 						"Highlight only closest to the cursor problem"
 					],
-					"markdownDescription": "Highlight only portion of the problems. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensfollowcursor)",
+					"markdownDescription": "Highlight only portion of the problems. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensfollowcursor)",
 					"default": "allLines"
 				},
 				"codexErrorLens.followCursorMore": {
 					"type": "number",
-					"markdownDescription": "Augments `#codexErrorLens.followCursor#`.\nAdds number of lines to top and bottom when `#codexErrorLens.followCursor#` is set to `activeLine`.\n Adds number of closest problems when `#codexErrorLens.followCursor#` is `closestProblem` [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensfollowcursormore)",
+					"markdownDescription": "Augments `#codexErrorLens.followCursor#`.\nAdds number of lines to top and bottom when `#codexErrorLens.followCursor#` is set to `activeLine`.\n Adds number of closest problems when `#codexErrorLens.followCursor#` is `closestProblem` [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensfollowcursormore)",
 					"default": 0
 				},
 				"codexErrorLens.gutterIconsEnabled": {
 					"type": "boolean",
-					"markdownDescription": "When enabled - shows gutter icons (In place of the debug breakpoint icon). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensguttericonsenabled)",
+					"markdownDescription": "When enabled - shows gutter icons (In place of the debug breakpoint icon). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensguttericonsenabled)",
 					"default": false
 				},
 				"codexErrorLens.gutterIconsFollowCursorOverride": {
 					"type": "boolean",
-					"markdownDescription": "When enabled and `#codexErrorLens.followCursor#` setting is not `allLines`, then gutter icons would be rendered for all problems. But line decorations (background, message) only for active line. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensguttericonsfollowcursoroverride)",
+					"markdownDescription": "When enabled and `#codexErrorLens.followCursor#` setting is not `allLines`, then gutter icons would be rendered for all problems. But line decorations (background, message) only for active line. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensguttericonsfollowcursoroverride)",
 					"default": true
 				},
 				"codexErrorLens.gutterIconSize": {
 					"type": "string",
-					"markdownDescription": "Change gutter icon size. Examples: `auto`, `contain`, `cover`, `50%`, `150%` ([CSS units](https://developer.mozilla.org/en-US/docs/Web/CSS/background-size)). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensguttericonsize)",
+					"markdownDescription": "Change gutter icon size. Examples: `auto`, `contain`, `cover`, `50%`, `150%` ([CSS units](https://developer.mozilla.org/en-US/docs/Web/CSS/background-size)). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensguttericonsize)",
 					"examples": [
 						"auto",
 						"contain",
@@ -988,7 +988,7 @@
 				},
 				"codexErrorLens.gutterIconSet": {
 					"type": "string",
-					"markdownDescription": "Change gutter icon style. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensguttericonset)",
+					"markdownDescription": "Change gutter icon style. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensguttericonset)",
 					"enum": [
 						"default",
 						"defaultOutline",
@@ -1042,50 +1042,50 @@
 						"hint": "🍏"
 					},
 					"additionalProperties": false,
-					"markdownDescription": "Pick emoji symbol for gutter icon when `#codexErrorLens.gutterIconSet#` is `emoji`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensgutteremoji)"
+					"markdownDescription": "Pick emoji symbol for gutter icon when `#codexErrorLens.gutterIconSet#` is `emoji`. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensgutteremoji)"
 				},
 				"codexErrorLens.errorGutterIconPath": {
 					"type": "string",
-					"markdownDescription": "Absolute path to error gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericonpath)",
+					"markdownDescription": "Absolute path to error gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericonpath)",
 					"default": ""
 				},
 				"codexErrorLens.warningGutterIconPath": {
 					"type": "string",
-					"markdownDescription": "Absolute path to warning gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericonpath)",
+					"markdownDescription": "Absolute path to warning gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericonpath)",
 					"default": ""
 				},
 				"codexErrorLens.infoGutterIconPath": {
 					"type": "string",
-					"markdownDescription": "Absolute path to info gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericonpath)",
+					"markdownDescription": "Absolute path to info gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericonpath)",
 					"default": ""
 				},
 				"codexErrorLens.hintGutterIconPath": {
 					"type": "string",
-					"markdownDescription": "Absolute path to hint gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericonpath)",
+					"markdownDescription": "Absolute path to hint gutter icon. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericonpath)",
 					"default": ""
 				},
 				"codexErrorLens.errorGutterIconColor": {
 					"type": "string",
 					"default": "#e45454",
-					"markdownDescription": "Error color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericoncolor)",
+					"markdownDescription": "Error color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericoncolor)",
 					"format": "color"
 				},
 				"codexErrorLens.warningGutterIconColor": {
 					"type": "string",
 					"default": "#ff942f",
-					"markdownDescription": "Warning color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericoncolor)",
+					"markdownDescription": "Warning color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericoncolor)",
 					"format": "color"
 				},
 				"codexErrorLens.infoGutterIconColor": {
 					"type": "string",
 					"default": "#00b7e4",
-					"markdownDescription": "Info color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericoncolor)",
+					"markdownDescription": "Info color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericoncolor)",
 					"format": "color"
 				},
 				"codexErrorLens.hintGutterIconColor": {
 					"type": "string",
 					"default": "#2faf64",
-					"markdownDescription": "Hint color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenserrorguttericoncolor)",
+					"markdownDescription": "Hint color of simple gutter icons (shapes and letters). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenserrorguttericoncolor)",
 					"format": "color"
 				},
 				"codexErrorLens.removeLinebreaks": {
@@ -1101,11 +1101,11 @@
 				"codexErrorLens.scrollbarHackEnabled": {
 					"type": "boolean",
 					"default": false,
-					"markdownDescription": "When enabled - prevents showing horizontal scrollbar in editor (caused by inline decorations). Also prevents mouse hover at inline message. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensscrollbarhackenabled)"
+					"markdownDescription": "When enabled - prevents showing horizontal scrollbar in editor (caused by inline decorations). Also prevents mouse hover at inline message. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensscrollbarhackenabled)"
 				},
 				"codexErrorLens.decorations": {
 					"type": "object",
-					"markdownDescription": "Advanced decoration tweaking. Possible keys: `errorRange`, `warningRange`, `infoRange`, `hintRange`, `errorMessage, `warningMessage`, `infoMessage`, `hintMessage`.\n\n Possible properties: `backgroundColor`, `color`, `outline`, `border`, ... [api](https://code.visualstudio.com/api/references/vscode-api#ThemableDecorationAttachmentRenderOptions). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLensdecorations)",
+					"markdownDescription": "Advanced decoration tweaking. Possible keys: `errorRange`, `warningRange`, `infoRange`, `hintRange`, `errorMessage, `warningMessage`, `infoMessage`, `hintMessage`.\n\n Possible properties: `backgroundColor`, `color`, `outline`, `border`, ... [api](https://code.visualstudio.com/api/references/vscode-api#ThemableDecorationAttachmentRenderOptions). [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLensdecorations)",
 					"default": {
 						"errorRange": {},
 						"warningRange": {},
@@ -1138,7 +1138,7 @@
 				"codexErrorLens.codeLensEnabled": {
 					"type": "boolean",
 					"default": false,
-					"markdownDescription": "Controls whether to show the CodeX Error Lens as a Code Lens above the code. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/master/docs/docs.md#codexErrorLenscodelensenabled)"
+					"markdownDescription": "Controls whether to show the CodeX Error Lens as a Code Lens above the code. [demo](https://github.com/Suryanshu-Nabheet/CodeX/blob/main/extensions/codex-error-lens/docs/docs.md#codexErrorLenscodelensenabled)"
 				},
 				"codexErrorLens.codeLensLength": {
 					"type": "object",

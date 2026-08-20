@@ -7,7 +7,6 @@ import { spawnSync } from 'child_process';
 import { constants, statSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
-import manifests from '../../../cgmanifest.json';
 import { additionalDeps } from './dep-lists';
 import { DebianArchString } from './types';
 
@@ -29,11 +28,8 @@ function calculatePackageDeps(binaryPath: string, arch: DebianArchString, chromi
 		console.error('Tried to stat ' + binaryPath + ' but failed.');
 	}
 
-	// Get the Chromium dpkg-shlibdeps file.
-	const chromiumManifest = manifests.registrations.filter(registration => {
-		return registration.component.type === 'git' && registration.component.git!.name === 'chromium';
-	});
-	const dpkgShlibdepsUrl = `https://raw.githubusercontent.com/chromium/chromium/${chromiumManifest[0].version}/third_party/dpkg-shlibdeps/dpkg-shlibdeps.pl`;
+const CHROMIUM_VERSION = '132.0.6834.83';
+	const dpkgShlibdepsUrl = `https://raw.githubusercontent.com/chromium/chromium/${CHROMIUM_VERSION}/third_party/dpkg-shlibdeps/dpkg-shlibdeps.pl`;
 	const dpkgShlibdepsScriptLocation = `${tmpdir()}/dpkg-shlibdeps.pl`;
 	const result = spawnSync('curl', [dpkgShlibdepsUrl, '-o', dpkgShlibdepsScriptLocation]);
 	if (result.status !== 0) {

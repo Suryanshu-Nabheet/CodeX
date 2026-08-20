@@ -158,9 +158,9 @@ jobs:
           prerelease: false
           name: CodeX Release ${{ github.ref_name }}
           body: |
-            ## CodeX ${{ github.ref_name }}
+            ## CodeX ${{ github.ref_name }} — Native AI Engineering Environment & CodexCLI
 
-            Build based on VS Code.
+            High-performance open-source AI code editor and autonomous terminal coding agent ecosystem.
 
             ### Installation Guide
             - **Windows**: Unzip `CodeX-win32-x64.zip` and run `codex.exe`.

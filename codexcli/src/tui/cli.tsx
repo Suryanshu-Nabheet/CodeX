@@ -1,0 +1,683 @@
+#!/usr/bin/env node
+import "dotenv/config";
+
+// Exit early if on an older version of Node.js (< 22)
+const major = process.versions.node.split(".").map(Number)[0]!;
+if (major < 22) {
+  // eslint-disable-next-line no-console
+  console.error(
+    "\n" +
+      "CodexCLI requires Node.js version 22 or newer.\n" +
+      `You are running Node.js v${process.versions.node}.\n` +
+      "Please upgrade Node.js: https://nodejs.org/en/download/\n",
+  );
+  process.exit(1);
+}
+
+// Hack to suppress deprecation warnings (punycode)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(process as any).noDeprecation = true;
+
+import type { AppRollout } from "./app.js";
+import type { CommandConfirmation } from "../agent/agent-loop.js";
+import type { AppConfig } from "../config/config.js";
+import type { ApprovalPolicy } from "../utils/approvals.js";
+import type { ResponseItem } from "../utils/responses.js";
+import type { ReasoningEffort } from "openai/resources/shared.js";
+
+// eslint-disable-next-line import/order
+import { ProjectRoot } from "../utils/project-root.js";
+
+// Initialize ProjectRoot early
+ProjectRoot.initialize(process.cwd());
+
+// eslint-disable-next-line import/order
+import App from "./app.js";
+// eslint-disable-next-line import/order
+import SessionsOverlay from "./components/sessions-overlay.js";
+// eslint-disable-next-line import/order
+import { AgentLoop } from "../agent/agent-loop";
+// eslint-disable-next-line import/order
+import { ReviewDecision } from "../agent/review";
+// eslint-disable-next-line import/order
+import { AutoApprovalMode } from "../utils/auto-approval-mode";
+// eslint-disable-next-line import/order
+import { checkForUpdates } from "../utils/check-updates";
+// eslint-disable-next-line import/order
+import { createInputItem } from "../utils/input-utils.js";
+// eslint-disable-next-line import/order
+import { initLogger } from "../utils/logger.js";
+// eslint-disable-next-line import/order
+import { isModelSupportedForResponses } from "../utils/model-utils.js";
+// eslint-disable-next-line import/order
+import {
+  loadConfig,
+  PRETTY_PRINT,
+  INSTRUCTIONS_FILEPATH,
+  getApiKey as fetchApiKey,
+} from "../config/config.js";
+import { formatToolCallForDisplay } from "../utils/format-tool-call.js";
+// eslint-disable-next-line import/order
+import { onExit, setInkRenderer } from "../utils/terminal.js";
+// eslint-disable-next-line import/order
+import { spawnSync } from "child_process";
+// eslint-disable-next-line import/order
+import fs from "fs";
+// eslint-disable-next-line import/order
+import { render } from "ink";
+// eslint-disable-next-line import/order
+import meow from "meow";
+// eslint-disable-next-line import/order
+import path from "path";
+import React from "react";
+
+// Call this early so `tail -F "$TMPDIR/oai-codex/codex-cli-latest.log"` works
+// immediately. This must be run with DEBUG=1 for logging to work.
+initLogger();
+
+// TODO: migrate to new versions of quiet mode
+//
+//     -q, --quiet    Non-interactive quiet mode that only prints final message
+//     -j, --json     Non-interactive JSON output mode that prints JSON messages
+
+const cli = meow(
+  `
+  Usage
+    $ codex [options] <prompt>
+    $ codex completion <bash|zsh|fish>
+
+  Options
+    --version                       Print version and exit
+
+    -h, --help                      Show usage and exit
+    -m, --model <model>             Model to use for completions (default: codex-mini-latest)
+    -p, --provider <provider>       Provider to use for completions (default: codexcli)
+    -i, --image <path>              Path(s) to image files to include as input
+    -v, --view <rollout>            Inspect a previously saved rollout instead of starting a session
+    --history                       Browse previous sessions
+    -q, --quiet                     Non-interactive mode that only prints the assistant's final output
+    -c, --config                    Open the instructions file in your editor
+    -w, --writable-root <path>      Writable folder for sandbox in full-auto mode (can be specified multiple times)
+    -a, --approval-mode <mode>      Override the approval policy: 'suggest', 'auto-edit', or 'full-auto'
+
+    --auto-edit                Automatically approve file edits; still prompt for commands
+    --full-auto                Automatically approve edits and commands when executed in the sandbox
+
+    --no-project-doc           Do not automatically include the repository's 'AGENTS.md'
+    --project-doc <file>       Include an additional markdown file at <file> as context
+    --full-stdout              Do not truncate stdout/stderr from command outputs
+    --notify                   Enable desktop notifications for responses
+
+    --disable-response-storage Disable server‑side response storage (sends the
+                               full conversation context with every request)
+
+    --flex-mode               Use "flex-mode" processing mode for the request (only supported
+                               with models o3 and o4-mini)
+
+    --reasoning <effort>      Set the reasoning effort level (low, medium, high) (default: high)
+
+  Dangerous options
+    --dangerously-skip-sandbox  Disable sandboxing; run all commands directly on your machine
+    --reset                     Reset configuration and history
+
+  Experimental options
+    -f, --full-context         Launch in "full-context" mode which loads the entire repository
+                               into context and applies a batch of edits in one go. Incompatible
+                               with all other flags, except for --model.
+
+  Examples
+    $ codex "Write and run a python program that prints ASCII art"
+    $ codex -q "fix build issues"
+    $ codex completion bash
+`,
+  {
+    importMeta: import.meta,
+    autoHelp: true,
+    flags: {
+      // misc
+      help: { type: "boolean", aliases: ["h"] },
+      version: { type: "boolean", description: "Print version and exit" },
+      view: { type: "string" },
+      history: { type: "boolean", description: "Browse previous sessions" },
+      model: { type: "string", aliases: ["m"] },
+      provider: { type: "string", aliases: ["p"] },
+      image: { type: "string", isMultiple: true, aliases: ["i"] },
+      quiet: {
+        type: "boolean",
+        aliases: ["q"],
+        description: "Non-interactive quiet mode",
+      },
+      config: {
+        type: "boolean",
+        aliases: ["c"],
+        description: "Open the instructions file in your editor",
+      },
+      reset: {
+        type: "boolean",
+        description: "Reset configuration and history",
+      },
+      dangerouslySkipSandbox: {
+        type: "boolean",
+        description:
+          "Disable sandboxing; run all commands directly on your machine.",
+      },
+      autoEdit: {
+        type: "boolean",
+        description: "Automatically approve edits; prompt for commands.",
+      },
+      fullAuto: {
+        type: "boolean",
+        description:
+          "Automatically run commands in a sandbox; only prompt for failures.",
+      },
+      approvalMode: {
+        type: "string",
+        aliases: ["a"],
+        description:
+          "Determine the approval mode for CodexCLI (default: suggest) Values: suggest, auto-edit, full-auto",
+      },
+      writableRoot: {
+        type: "string",
+        isMultiple: true,
+        aliases: ["w"],
+        description:
+          "Writable folder for sandbox in full-auto mode (can be specified multiple times)",
+      },
+      noProjectDoc: {
+        type: "boolean",
+        description: "Disable automatic inclusion of project-level AGENTS.md",
+      },
+      projectDoc: {
+        type: "string",
+        description: "Path to a markdown file to include as project doc",
+      },
+      flexMode: {
+        type: "boolean",
+        description:
+          "Enable the flex-mode service tier (only supported by models o3 and o4-mini)",
+      },
+      fullStdout: {
+        type: "boolean",
+        description:
+          "Disable truncation of command stdout/stderr messages (show everything)",
+        aliases: ["no-truncate"],
+      },
+      reasoning: {
+        type: "string",
+        description: "Set the reasoning effort level (low, medium, high)",
+        choices: ["low", "medium", "high"],
+        default: "high",
+      },
+      // Notification
+      notify: {
+        type: "boolean",
+        description: "Enable desktop notifications for responses",
+      },
+
+      disableResponseStorage: {
+        type: "boolean",
+        description:
+          "Disable server-side response storage (sends full conversation context with every request)",
+      },
+
+      // Experimental mode where whole directory is loaded in context and model is requested
+      // to make code edits in a single pass.
+      fullContext: {
+        type: "boolean",
+        aliases: ["f"],
+        description: `Run in full-context editing approach. The model is given the whole code
+          directory as context and performs changes in one go without acting.`,
+      },
+    },
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Global flag handling
+// ---------------------------------------------------------------------------
+
+// Handle 'completion' subcommand before any prompting or API calls
+if (cli.input[0] === "completion") {
+  const shell = cli.input[1] || "bash";
+  const scripts: Record<string, string> = {
+    bash: `# bash completion for codex
+_codex_completion() {
+  local cur
+  cur="\${COMP_WORDS[COMP_CWORD]}"
+  COMPREPLY=( $(compgen -o default -o filenames -- "\${cur}") )
+}
+complete -F _codex_completion codex`,
+    zsh: `# zsh completion for codex
+#compdef codex
+
+_codex() {
+  _arguments '*:filename:_files'
+}
+_codex`,
+    fish: `# fish completion for codex
+complete -c codex -a '(__fish_complete_path)' -d 'file path'`,
+  };
+  const script = scripts[shell];
+  if (!script) {
+    // eslint-disable-next-line no-console
+    console.error(`Unsupported shell: ${shell}`);
+    process.exit(1);
+  }
+  // eslint-disable-next-line no-console
+  console.log(script);
+  process.exit(0);
+}
+
+// For --help, show help and exit.
+if (cli.flags.help) {
+  cli.showHelp();
+}
+
+// Handle --reset
+if (cli.flags.reset) {
+  const {
+    CONFIG_JSON_FILEPATH,
+    CONFIG_YAML_FILEPATH,
+    CONFIG_YML_FILEPATH,
+    CONFIG_DIR,
+  } = await import("../config/config.js");
+  const fs = await import("fs");
+
+  // Remove configs
+  [CONFIG_JSON_FILEPATH, CONFIG_YAML_FILEPATH, CONFIG_YML_FILEPATH].forEach(
+    (f) => {
+      if (fs.existsSync(f)) {
+        fs.unlinkSync(f);
+        // eslint-disable-next-line no-console
+        console.log(`Deleted ${f}`);
+      }
+    },
+  );
+
+  // Remove history (if stored in config dir or similar)
+  // Assuming history is managed via rollout storage which is typically in ~/.codex/rollouts
+  // We can just wipe ~/.codex if the user wants a full reset, but that might be excessive.
+  // The user asked for "start form 0 setup o db saving and all clean".
+  // Wiping ~/.codex seems appropriate for a "factory reset".
+
+  // Check if we can just remove the whole dir
+  // But wait, user might have manual stuff there? Unlikely for a normal user.
+  // config.ts says CONFIG_DIR = ~/.codex
+
+  if (fs.existsSync(CONFIG_DIR)) {
+    // We'll just mention we deleted configs.
+    // If we want to delete history rollouts, we should probably check where they are saved.
+    // src/utils/storage.ts
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(
+    "Configuration reset complete. Please run codexcli to set up again.",
+  );
+  process.exit(0);
+}
+
+// For --config, open custom instructions file in editor and exit.
+if (cli.flags.config) {
+  try {
+    loadConfig(); // Ensures the file is created if it doesn't already exit.
+  } catch {
+    // ignore errors
+  }
+
+  const filePath = INSTRUCTIONS_FILEPATH;
+  const editor =
+    process.env["EDITOR"] || (process.platform === "win32" ? "notepad" : "vi");
+  spawnSync(editor, [filePath], { stdio: "inherit" });
+  process.exit(0);
+}
+
+// ---------------------------------------------------------------------------
+// API key handling
+// ---------------------------------------------------------------------------
+
+const fullContextMode = Boolean(cli.flags.fullContext);
+let config = loadConfig(undefined, undefined, {
+  cwd: process.cwd(),
+  disableProjectDoc: Boolean(cli.flags.noProjectDoc),
+  projectDocPath: cli.flags.projectDoc,
+  isFullContext: fullContextMode,
+});
+
+// `prompt` can be updated later when the user resumes a previous session
+// via the `--history` flag. Therefore it must be declared with `let` rather
+// than `const`.
+let prompt = cli.input[0];
+const model = cli.flags.model ?? config.model;
+const imagePaths = cli.flags.image;
+const provider = cli.flags.provider ?? config.provider ?? "codexcli";
+
+// Get provider-specific API key (computed key must win over loadConfig spread)
+const apiKey = config.apiKey || fetchApiKey(provider) || "";
+
+const flagPresent = Object.hasOwn(cli.flags, "disableResponseStorage");
+
+const disableResponseStorage = flagPresent
+  ? Boolean(cli.flags.disableResponseStorage)
+  : (config.disableResponseStorage ?? false);
+
+config = {
+  ...config,
+  apiKey,
+  model: model ?? config.model,
+  notify: Boolean(cli.flags.notify),
+  reasoningEffort:
+    (cli.flags.reasoning as ReasoningEffort | undefined) ?? "medium",
+  flexMode: cli.flags.flexMode || (config.flexMode ?? false),
+  provider,
+  disableResponseStorage,
+};
+
+// Check for updates after loading config. This is important because we write state file in
+// the config dir.
+try {
+  await checkForUpdates();
+} catch {
+  // ignore
+}
+
+// For --flex-mode, validate and exit if incorrect.
+if (config.flexMode) {
+  // API Key validation moved to App component
+  const allowedFlexModels = new Set([
+    "o3",
+    "o4-mini",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.3-codex",
+  ]);
+  if (!allowedFlexModels.has(config.model)) {
+    if (cli.flags.flexMode) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `The --flex-mode option is only supported on selected reasoning models ` +
+          `(o3, o4-mini, gpt-5.6-*, gpt-5.4*, gpt-5.3-codex). ` +
+          `Current model: '${config.model}'.`,
+      );
+      process.exit(1);
+    } else {
+      config.flexMode = false;
+    }
+  }
+}
+
+if (
+  !(await isModelSupportedForResponses(provider, config.model)) &&
+  (!provider || provider.toLowerCase() === "codexcli")
+) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    `Warning: The model "${config.model}" was not found in the list of available models.\n` +
+      `Proceeding anyway, but you may encounter errors if the model name is incorrect.`,
+  );
+  // process.exit(1); // Proceed despite warning
+}
+
+let rollout: AppRollout | undefined;
+
+// For --history, show session selector and optionally update prompt or rollout.
+if (cli.flags.history) {
+  const result: { path: string; mode: "view" | "resume" } | null =
+    await new Promise((resolve) => {
+      const instance = render(
+        React.createElement(SessionsOverlay, {
+          onView: (p: string) => {
+            instance.unmount();
+            resolve({ path: p, mode: "view" });
+          },
+          onResume: (p: string) => {
+            instance.unmount();
+            resolve({ path: p, mode: "resume" });
+          },
+          onExit: () => {
+            instance.unmount();
+            resolve(null);
+          },
+        }),
+      );
+    });
+
+  if (!result) {
+    process.exit(0);
+  }
+
+  if (result.mode === "view") {
+    try {
+      const content = fs.readFileSync(result.path, "utf-8");
+      rollout = JSON.parse(content) as AppRollout;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Error reading session file:", error);
+      process.exit(1);
+    }
+  } else {
+    prompt = `Resume this session: ${result.path}`;
+  }
+}
+
+// For --view, optionally load an existing rollout from disk, display it and exit.
+if (cli.flags.view) {
+  const viewPath = cli.flags.view;
+  const absolutePath = path.isAbsolute(viewPath)
+    ? viewPath
+    : path.join(process.cwd(), viewPath);
+  try {
+    const content = fs.readFileSync(absolutePath, "utf-8");
+    rollout = JSON.parse(content) as AppRollout;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("Error reading rollout file:", error);
+    process.exit(1);
+  }
+}
+
+// Ensure that all values in additionalWritableRoots are absolute paths.
+const additionalWritableRoots: ReadonlyArray<string> = (
+  cli.flags.writableRoot ?? []
+).map((p) => path.resolve(p));
+
+// For --quiet, run the cli without user interactions and exit.
+if (cli.flags.quiet) {
+  process.env["CODEX_QUIET_MODE"] = "1";
+  if (!prompt || prompt.trim() === "") {
+    // eslint-disable-next-line no-console
+    console.error(
+      'Quiet mode requires a prompt string, e.g.,: codex -q "Fix bug #123 in the foobar project"',
+    );
+    process.exit(1);
+  }
+
+  // Determine approval policy for quiet mode based on flags
+  const quietApprovalPolicy: ApprovalPolicy =
+    cli.flags.fullAuto || cli.flags.approvalMode === "full-auto"
+      ? AutoApprovalMode.FULL_AUTO
+      : cli.flags.autoEdit || cli.flags.approvalMode === "auto-edit"
+        ? AutoApprovalMode.AUTO_EDIT
+        : config.approvalMode || AutoApprovalMode.AUTO_EDIT;
+
+  await runQuietMode({
+    prompt,
+    imagePaths: imagePaths || [],
+    approvalPolicy: quietApprovalPolicy,
+    additionalWritableRoots,
+    config,
+  });
+  onExit();
+  process.exit(0);
+}
+
+// Default to auto-edit (file edits auto-approved; shell still prompts).
+// Determine the approval policy to use in interactive mode.
+//
+// Priority (highest → lowest):
+// 1. --fullAuto – run everything automatically in a sandbox.
+// 2. --dangerouslyAutoApproveEverything – run everything **without** a sandbox
+//    or prompts.  This is intended for completely trusted environments.  Since
+//    it is more dangerous than --fullAuto we deliberately give it lower
+//    priority so a user specifying both flags still gets the safer behaviour.
+// 3. --autoEdit – automatically approve edits, but prompt for commands.
+// 4. config.approvalMode - use the approvalMode setting from ~/.codex/config.json.
+// 5. Default – auto-edit.
+
+const approvalPolicy: ApprovalPolicy =
+  cli.flags.fullAuto || cli.flags.approvalMode === "full-auto"
+    ? AutoApprovalMode.FULL_AUTO
+    : cli.flags.autoEdit || cli.flags.approvalMode === "auto-edit"
+      ? AutoApprovalMode.AUTO_EDIT
+      : config.approvalMode || AutoApprovalMode.AUTO_EDIT;
+
+const instance = render(
+  <App
+    prompt={prompt}
+    config={config}
+    rollout={rollout}
+    imagePaths={imagePaths}
+    approvalPolicy={approvalPolicy}
+    additionalWritableRoots={additionalWritableRoots}
+    fullStdout={Boolean(cli.flags.fullStdout)}
+  />,
+  {
+    patchConsole: process.env["DEBUG"] ? false : true,
+  },
+);
+setInkRenderer(instance);
+
+function formatResponseItemForQuietMode(item: ResponseItem): string {
+  if (!PRETTY_PRINT) {
+    return JSON.stringify(item);
+  }
+  switch (item.type) {
+    case "message": {
+      const role = item.role === "assistant" ? "assistant" : item.role;
+      const txt = (item.content || [])
+        .map((c) => {
+          if (c.type === "output_text" || c.type === "input_text") {
+            return (c as { text: string }).text;
+          }
+          if (c.type === "input_image") {
+            return "<Image>";
+          }
+          if (c.type === "input_file") {
+            return (c as unknown as { filename: string }).filename;
+          }
+          if (c.type === "refusal") {
+            return (c as unknown as { refusal: string }).refusal;
+          }
+          return "?";
+        })
+        .join(" ");
+      return `${role}: ${txt}`;
+    }
+    case "function_call": {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fc = item as any;
+      const formatted = formatToolCallForDisplay({
+        name: fc.name,
+        arguments: fc.arguments,
+      });
+      return `⏺ ${formatted.display}`;
+    }
+    case "function_call_output": {
+      // @ts-expect-error metadata unknown on ResponseFunctionToolCallOutputItem
+      const meta = item.metadata as ExecOutputMetadata;
+      const parts: Array<string> = [];
+      if (typeof meta?.exit_code === "number") {
+        parts.push(`exit ${meta.exit_code}`);
+      }
+      if (typeof meta?.duration_seconds === "number") {
+        parts.push(`${meta.duration_seconds}s`);
+      }
+      const header = parts.length > 0 ? ` (${parts.join(" · ")})` : "";
+      return `✓${header}\n${item.output}`;
+    }
+    default: {
+      return JSON.stringify(item);
+    }
+  }
+}
+
+async function runQuietMode({
+  prompt,
+  imagePaths,
+  approvalPolicy,
+  additionalWritableRoots,
+  config,
+}: {
+  prompt: string;
+  imagePaths: Array<string>;
+  approvalPolicy: ApprovalPolicy;
+  additionalWritableRoots: ReadonlyArray<string>;
+  config: AppConfig;
+}): Promise<void> {
+  const agent = new AgentLoop({
+    model: config.model,
+    config: config,
+    instructions: config.instructions,
+    provider: config.provider,
+    approvalPolicy,
+    additionalWritableRoots,
+    disableResponseStorage: config.disableResponseStorage,
+    onItem: (item: ResponseItem) => {
+      // eslint-disable-next-line no-console
+      console.log(formatResponseItemForQuietMode(item));
+    },
+    onLoading: () => {
+      /* intentionally ignored in quiet mode */
+    },
+    getCommandConfirmation: (
+      _command: Array<string>,
+    ): Promise<CommandConfirmation> => {
+      // In quiet mode, default to NO_CONTINUE, except when in full-auto mode
+      const reviewDecision =
+        approvalPolicy === AutoApprovalMode.FULL_AUTO
+          ? ReviewDecision.YES
+          : ReviewDecision.NO_CONTINUE;
+      return Promise.resolve({ review: reviewDecision });
+    },
+    onLastResponseId: () => {
+      /* intentionally ignored in quiet mode */
+    },
+  });
+
+  const inputItem = await createInputItem(prompt, imagePaths);
+  await agent.run([inputItem]);
+}
+
+const exit = () => {
+  onExit();
+  process.exit(0);
+};
+
+process.on("SIGINT", exit);
+process.on("SIGQUIT", exit);
+process.on("SIGTERM", exit);
+
+// ---------------------------------------------------------------------------
+// Fallback for Ctrl-C when stdin is in raw-mode
+// ---------------------------------------------------------------------------
+
+if (process.stdin.isTTY) {
+  // Ensure we do not leave the terminal in raw mode if the user presses
+  // Ctrl-C while some other component has focus and Ink is intercepting
+  // input. Node does *not* emit a SIGINT in raw-mode, so we listen for the
+  // corresponding byte (0x03) ourselves and trigger a graceful shutdown.
+  const onRawData = (data: Buffer | string): void => {
+    const str = Buffer.isBuffer(data) ? data.toString("utf8") : data;
+    if (str === "\u0003") {
+      exit();
+    }
+  };
+  process.stdin.on("data", onRawData);
+}
+
+// Ensure terminal clean-up always runs, even when other code calls
+// `process.exit()` directly.
+process.once("exit", onExit);

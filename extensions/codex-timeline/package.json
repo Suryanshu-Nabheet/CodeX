@@ -2,7 +2,7 @@
   "name": "codex-timeline",
   "displayName": "CodeX Timeline",
   "description": "Adds list of last commits in source control tab",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "Suryanshu-Nabheet",
   "author": "Suryanshu Nabheet",
   "repository": "https://github.com/Suryanshu-Nabheet/CodeX.git",

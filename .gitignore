@@ -28,3 +28,18 @@ product.overrides.json
 .tool-versions
 src/vs/workbench/contrib/codex/browser/react/out/**
 src/vs/workbench/contrib/codex/browser/react/src2/**
+
+# IDE & editor configs (keep out of repo)
+.idea/
+.vscode/settings.json
+*.iml
+
+# Microsoft/upstream VSCode-specific files (not relevant to CodeX)
+.idx/
+.config/
+.configurations/
+CodeQL.yml
+.mention-bot
+.lsifrc.json
+cglicenses.json
+cgmanifest.json

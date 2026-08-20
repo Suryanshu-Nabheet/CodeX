@@ -12,7 +12,6 @@ const child_process_1 = require("child_process");
 const fs_1 = require("fs");
 const os_1 = require("os");
 const path_1 = __importDefault(require("path"));
-const cgmanifest_json_1 = __importDefault(require("../../../cgmanifest.json"));
 const dep_lists_1 = require("./dep-lists");
 function generatePackageDeps(files, arch, chromiumSysroot, vscodeSysroot) {
     const dependencies = files.map(file => calculatePackageDeps(file, arch, chromiumSysroot, vscodeSysroot));
@@ -31,11 +30,8 @@ function calculatePackageDeps(binaryPath, arch, chromiumSysroot, vscodeSysroot) 
         // The package might not exist. Don't re-throw the error here.
         console.error('Tried to stat ' + binaryPath + ' but failed.');
     }
-    // Get the Chromium dpkg-shlibdeps file.
-    const chromiumManifest = cgmanifest_json_1.default.registrations.filter(registration => {
-        return registration.component.type === 'git' && registration.component.git.name === 'chromium';
-    });
-    const dpkgShlibdepsUrl = `https://raw.githubusercontent.com/chromium/chromium/${chromiumManifest[0].version}/third_party/dpkg-shlibdeps/dpkg-shlibdeps.pl`;
+    const CHROMIUM_VERSION = '132.0.6834.83';
+    const dpkgShlibdepsUrl = `https://raw.githubusercontent.com/chromium/chromium/${CHROMIUM_VERSION}/third_party/dpkg-shlibdeps/dpkg-shlibdeps.pl`;
     const dpkgShlibdepsScriptLocation = `${(0, os_1.tmpdir)()}/dpkg-shlibdeps.pl`;
     const result = (0, child_process_1.spawnSync)('curl', [dpkgShlibdepsUrl, '-o', dpkgShlibdepsScriptLocation]);
     if (result.status !== 0) {

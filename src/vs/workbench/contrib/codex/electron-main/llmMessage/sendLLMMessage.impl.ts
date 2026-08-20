@@ -100,8 +100,8 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 			baseURL: 'https://openrouter.ai/api/v1',
 			apiKey: thisConfig.apiKey,
 			defaultHeaders: {
-				'HTTP-Referer': 'https://codexeditor.com', // Optional, for including your app on openrouter.ai rankings.
-				'X-Title': 'Codex', // Optional. Shows in rankings on openrouter.ai.
+				'HTTP-Referer': 'https://github.com/Suryanshu-Nabheet/CodeX',
+				'X-Title': 'CodeX',
 			},
 			...commonPayloadOpts,
 		})

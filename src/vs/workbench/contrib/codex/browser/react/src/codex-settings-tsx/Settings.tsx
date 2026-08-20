@@ -283,7 +283,7 @@ const SimpleModelSettingsDialog = ({
 		onClose();
 	};
 
-	const sourcecodeOverridesLink = `https://github.com/codexeditor/codex/blob/2e5ecb291d33afbe4565921664fb7e183189c1c5/src/vs/workbench/contrib/codex/common/modelCapabilities.ts#L146-L172`
+	const sourcecodeOverridesLink = `https://github.com/Suryanshu-Nabheet/CodeX/blob/main/src/vs/workbench/contrib/codex/common/modelCapabilities.ts`;
 
 	return (
 		<div // Backdrop

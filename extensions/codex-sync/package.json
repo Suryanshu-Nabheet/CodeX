@@ -1,7 +1,7 @@
 {
 	"name": "codex-sync",
 	"publisher": "Suryanshu-Nabheet",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"description": "CodeX Sync - Internal Source Control Management",
 	"displayName": "CodeX Sync",
 	"repository": {

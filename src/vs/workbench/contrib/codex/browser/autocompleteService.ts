@@ -29,7 +29,7 @@ import { IContextGatheringService } from './contextGatheringService.js';
 const allLinebreakSymbols = ['\r\n', '\n']
 const _ln = isWindows ? allLinebreakSymbols[0] : allLinebreakSymbols[1]
 
-// The extension this was called from is here - https://github.com/codexeditor/codex/blob/autocomplete/extensions/codex/src/extension/extension.ts
+// CodeX AI Autocomplete Service
 
 
 /*

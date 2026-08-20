@@ -290,7 +290,7 @@ class EditCodeService extends Disposable implements IEditCodeService {
 	// 				run: () => { this._commandService.executeCommand(CODEX_OPEN_SETTINGS_ACTION_ID) }
 	// 			}]
 	// 		},
-	// 		source: details ? `(Hold ${isMacintosh ? 'Option' : 'Alt'} to hover) - ${details}\n\nIf this persists, feel free to [report](https://github.com/codexeditor/codex/issues/new) it.` : undefined
+	// 		source: details ? `(Hold ${isMacintosh ? 'Option' : 'Alt'} to hover) - ${details}\n\nIf this persists, feel free to [report](https://github.com/Suryanshu-Nabheet/CodeX/issues/new) it.` : undefined
 	// 	})
 	// }
 

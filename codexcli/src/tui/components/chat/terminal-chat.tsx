@@ -1,0 +1,924 @@
+import type { CommandConfirmation } from "../../../agent/agent-loop.js";
+import type { AppConfig } from "../../../config/config.js";
+import type {
+  ApplyPatchCommand,
+  ApprovalPolicy,
+} from "../../../utils/approvals.js";
+
+import type { ResponseItem, ResponseInputItem } from "../../../utils/responses.js";
+import type { AppRollout } from "../../app.js";
+
+import TerminalChatInput from "./terminal-chat-input.js";
+import TerminalChatPastRollout from "./terminal-chat-past-rollout.js";
+import TerminalChatResponseItem from "./terminal-chat-response-item.js";
+import { TerminalChatToolCallCommand } from "./terminal-chat-tool-call-command.js";
+import TerminalMessageHistory from "./terminal-message-history.js";
+import { latestActivityLabel } from "./tool-activity.js";
+import { AgentLoop } from "../../../agent/agent-loop.js";
+import { ReviewDecision } from "../../../agent/review.js";
+import { saveConfig } from "../../../config/config.js";
+import { hasUsableApiKey } from "../../../config/user-env.js";
+import {
+  normalizeProviderKey,
+  providerRequiresApiKey,
+} from "../../../config/providers.js";
+import Setup from "../setup.js";
+import { generateCompactSummary } from "../../../utils/compact-summary.js";
+import { extractAppliedPatches as _extractAppliedPatches } from "../../../utils/extract-applied-patches.js";
+import { formatCommandForDisplay } from "../../../utils/format-command.js";
+import { getGitDiff } from "../../../utils/get-diff.js";
+import { createInputItem } from "../../../utils/input-utils.js";
+import { createLLMClient } from "../../../utils/llm-client.js";
+import { log } from "../../../utils/logger.js";
+import {
+  getAvailableModels,
+  calculateContextPercentRemaining,
+  resolveDefaultModel,
+  isStreamingMessage,
+  uniqueById,
+} from "../../../utils/model-utils.js";
+import { shortCwd } from "../../../utils/short-path.js";
+import { saveRollout } from "../../../utils/storage.js";
+import { CLI_VERSION } from "../../../utils/version.js";
+import { useConfirmation } from "../../hooks/use-confirmation.js";
+import { useTerminalSize } from "../../hooks/use-terminal-size.js";
+import { colorsByPolicy } from "../../theme.js";
+import ApprovalModeOverlay from "../approval-mode-overlay.js";
+import DiffOverlay from "../diff-overlay.js";
+import HelpOverlay from "../help-overlay.js";
+import HistoryOverlay from "../history-overlay.js";
+import ModelOverlay from "../model-overlay.js";
+import ProviderOverlay from "../provider-overlay.js";
+import SessionsOverlay from "../sessions-overlay.js";
+import fs from "fs/promises";
+import { Box, Text } from "ink";
+import { spawn } from "node:child_process";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { inspect } from "util";
+import { getDefaultModelForProvider } from "../../../models/index.js";
+
+export type OverlayModeType =
+  | "none"
+  | "history"
+  | "sessions"
+  | "model"
+  | "provider"
+  | "provider-key"
+  | "approval"
+  | "help"
+  | "diff";
+
+type Props = {
+  config: AppConfig;
+  onConfigChange?: (config: AppConfig) => void;
+  prompt?: string;
+  imagePaths?: Array<string>;
+  approvalPolicy: ApprovalPolicy;
+  additionalWritableRoots: ReadonlyArray<string>;
+  fullStdout: boolean;
+};
+
+/**
+ * Generates an explanation for a shell command using the AI API.
+ *
+ * @param command The command to explain
+ * @param model The model to use for generating the explanation
+ * @param flexMode Whether to use the flex-mode service tier
+ * @param config The configuration object
+ * @returns A human-readable explanation of what the command does
+ */
+async function generateCommandExplanation(
+  command: Array<string>,
+  model: string,
+  flexMode: boolean,
+  config: AppConfig,
+): Promise<string> {
+  try {
+    // Create a temporary AI client
+    const { provider, apiKey } = config;
+    const ai = createLLMClient({
+      provider: normalizeProviderKey(provider ?? "codexcli"),
+      apiKey,
+    });
+
+    // Format the command for display
+    const commandForDisplay = formatCommandForDisplay(command);
+
+    // Request the explanation from the provider
+    const response = await ai.chat.completions.create({
+      model,
+      ...(flexMode ? { service_tier: "flex" } : {}),
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert in shell commands and terminal operations. Your task is to provide detailed, accurate explanations of shell commands that users are considering executing. Break down each part of the command, explain what it does, identify any potential risks or side effects, and explain why someone might want to run it. Be specific about what files or systems will be affected. If the command could potentially be harmful, make sure to clearly highlight those risks.",
+        },
+        {
+          role: "user",
+          content: `Please explain this shell command in detail: \`${commandForDisplay}\`\n\nProvide a structured explanation that includes:\n1. A brief overview of what the command does\n2. A breakdown of each part of the command (flags, arguments, etc.)\n3. What files, directories, or systems will be affected\n4. Any potential risks or side effects\n5. Why someone might want to run this command\n\nBe specific and technical - this explanation will help the user decide whether to approve or reject the command.`,
+        },
+      ],
+    });
+
+    // Extract the explanation from the response
+    const explanation =
+      response.choices[0]?.message.content || "Unable to generate explanation.";
+    return explanation;
+  } catch (error) {
+    log(`Error generating command explanation: ${error}`);
+
+    let errorMessage = "Unable to generate explanation due to an error.";
+    if (error instanceof Error) {
+      errorMessage = `Unable to generate explanation: ${error.message}`;
+
+      // If it's an API error, check for more specific information
+      if ("status" in error && typeof error.status === "number") {
+        // Handle API-specific errors
+        if (error.status === 401) {
+          errorMessage =
+            "Unable to generate explanation: API key is invalid or expired.";
+        } else if (error.status === 429) {
+          errorMessage =
+            "Unable to generate explanation: Rate limit exceeded. Please try again later.";
+        } else if (error.status >= 500) {
+          errorMessage =
+            "Unable to generate explanation: AI service is currently unavailable. Please try again later.";
+        }
+      }
+    }
+
+    return errorMessage;
+  }
+}
+
+export default function TerminalChat({
+  config,
+  onConfigChange,
+  prompt: _initialPrompt,
+  imagePaths: _initialImagePaths,
+  approvalPolicy: initialApprovalPolicy,
+  additionalWritableRoots,
+  fullStdout,
+}: Props): React.ReactElement {
+  const notify = Boolean(config.notify);
+  const [model, setModel] = useState<string>(config.model);
+  const [provider, setProvider] = useState<string>(
+    normalizeProviderKey(config.provider || "codexcli"),
+  );
+  const [pendingProvider, setPendingProvider] = useState<string | null>(null);
+  const [lastResponseId, setLastResponseId] = useState<string | null>(null);
+  const [items, setItems] = useState<Array<ResponseItem>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [approvalPolicy, setApprovalPolicy] = useState<ApprovalPolicy>(
+    initialApprovalPolicy,
+  );
+  const [thinkingSeconds, setThinkingSeconds] = useState(0);
+  const followUpQueueRef = React.useRef<
+    Array<{
+      id: string;
+      inputs: Array<ResponseInputItem>;
+      preview: string;
+    }>
+  >([]);
+  const [queuedFollowUps, setQueuedFollowUps] = useState<
+    Array<{ id: string; preview: string }>
+  >([]);
+  const wasLoadingRef = React.useRef(false);
+  const lastResponseIdRef = React.useRef<string | null>(null);
+  lastResponseIdRef.current = lastResponseId;
+
+  const handleCompact = async () => {
+    setLoading(true);
+    try {
+      const summary = await generateCompactSummary(
+        items,
+        model,
+        Boolean(config.flexMode),
+        config,
+      );
+      // Reset agent transcript + response id so the next turn uses the summary,
+      // not the pre-compact server chain / local history.
+      agentRef.current?.replaceContext(summary);
+      setLastResponseId("");
+      setItems([
+        {
+          id: `compact-${Date.now()}`,
+          type: "message",
+          role: "assistant",
+          content: [{ type: "output_text", text: summary }],
+        } as ResponseItem,
+      ]);
+    } catch (err) {
+      setItems((prev) => [
+        ...prev,
+        {
+          id: `compact-error-${Date.now()}`,
+          type: "message",
+          role: "system",
+          content: [
+            { type: "input_text", text: `Failed to compact context: ${err}` },
+          ],
+        } as ResponseItem,
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const {
+    requestConfirmation,
+    confirmationPrompt,
+    explanation,
+    submitConfirmation,
+  } = useConfirmation();
+  const [overlayMode, setOverlayMode] = useState<OverlayModeType>("none");
+  const [viewRollout, setViewRollout] = useState<AppRollout | null>(null);
+
+  // Store the diff text when opening the diff overlay so the view isn’t
+  // recomputed on every re‑render while it is open.
+  // diffText is passed down to the DiffOverlay component. The setter is
+  // currently unused but retained for potential future updates. Prefix with
+  // an underscore so eslint ignores the unused variable.
+  const [diffText, _setDiffText] = useState<string>("");
+
+  const [initialPrompt, setInitialPrompt] = useState(_initialPrompt);
+  const [initialImagePaths, setInitialImagePaths] =
+    useState(_initialImagePaths);
+
+  const PWD = React.useMemo(() => shortCwd(), []);
+
+  // Keep a single AgentLoop instance alive across renders;
+  // recreate only when model/instructions/approvalPolicy change.
+  const agentRef = React.useRef<AgentLoop>(undefined);
+  const [, forceUpdate] = React.useReducer((c) => c + 1, 0); // trigger re‑render
+
+  // ────────────────────────────────────────────────────────────────
+  // DEBUG: log every render w/ key bits of state
+  // ────────────────────────────────────────────────────────────────
+  log(
+    `render - agent? ${Boolean(agentRef.current)} loading=${loading} items=${
+      items.length
+    }`,
+  );
+
+  useEffect(() => {
+    // Skip recreating the agent if awaiting a decision on a pending confirmation.
+    if (confirmationPrompt != null) {
+      log("skip AgentLoop recreation due to pending confirmationPrompt");
+      return;
+    }
+
+    log("creating NEW AgentLoop");
+    log(
+      `model=${model} provider=${provider} instructions=${Boolean(
+        config.instructions,
+      )} approvalPolicy=${approvalPolicy}`,
+    );
+
+    // Tear down any existing loop before creating a new one.
+    agentRef.current?.terminate();
+
+    const sessionId = crypto.randomUUID();
+    agentRef.current = new AgentLoop({
+      model,
+      provider,
+      config,
+      instructions: config.instructions || "",
+      approvalPolicy,
+      disableResponseStorage: config.disableResponseStorage,
+      additionalWritableRoots,
+      onLastResponseId: setLastResponseId,
+      onItem: (item) => {
+        // Skip logging full item bodies during token stream (too noisy / slow).
+        if (!isStreamingMessage(item as ResponseItem)) {
+          log(`onItem: ${JSON.stringify(item)}`);
+        }
+        setItems((prev) => {
+          const updated = uniqueById([...prev, item as ResponseItem]);
+          // Avoid rewriting the session file on every token tick.
+          if (!isStreamingMessage(item as ResponseItem)) {
+            saveRollout(sessionId, updated);
+          }
+          return updated;
+        });
+      },
+      onLoading: setLoading,
+      getCommandConfirmation: async (
+        command: Array<string>,
+        applyPatch: ApplyPatchCommand | undefined,
+      ): Promise<CommandConfirmation> => {
+        log(`getCommandConfirmation: ${command}`);
+        const commandForDisplay = formatCommandForDisplay(command);
+
+        // First request for confirmation
+        let { decision: review, customDenyMessage } = await requestConfirmation(
+          <TerminalChatToolCallCommand commandForDisplay={commandForDisplay} />,
+        );
+
+        // If the user wants an explanation, generate one and ask again.
+        if (review === ReviewDecision.EXPLAIN) {
+          log(`Generating explanation for command: ${commandForDisplay}`);
+          const explanation = await generateCommandExplanation(
+            command,
+            model,
+            Boolean(config.flexMode),
+            config,
+          );
+          log(`Generated explanation: ${explanation}`);
+
+          // Ask for confirmation again, but with the explanation.
+          const confirmResult = await requestConfirmation(
+            <TerminalChatToolCallCommand
+              commandForDisplay={commandForDisplay}
+              explanation={explanation}
+            />,
+          );
+
+          // Update the decision based on the second confirmation.
+          review = confirmResult.decision;
+          customDenyMessage = confirmResult.customDenyMessage;
+
+          // Return the final decision with the explanation.
+          return { review, customDenyMessage, applyPatch, explanation };
+        }
+
+        return { review, customDenyMessage, applyPatch };
+      },
+    });
+
+    // Force a render so JSX below can "see" the freshly created agent.
+    forceUpdate();
+
+    log(`AgentLoop created: ${inspect(agentRef.current, { depth: 1 })}`);
+
+    return () => {
+      log("terminating AgentLoop");
+      agentRef.current?.terminate();
+      agentRef.current = undefined;
+      forceUpdate(); // re‑render after teardown too
+    };
+    // We intentionally omit 'approvalPolicy' and 'confirmationPrompt' from the deps
+    // so switching modes or showing confirmation dialogs doesn’t tear down the loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model, provider, config, requestConfirmation, additionalWritableRoots]);
+
+  const applyProviderSwitch = useCallback(
+    (
+      normalized: string,
+      options?: { openModelPicker?: boolean; apiKey?: string },
+    ) => {
+      log("TerminalChat: switching provider to " + normalized);
+      agentRef.current?.cancel();
+      setLoading(false);
+
+      const offlineDefault = getDefaultModelForProvider(normalized) || model;
+
+      const nextConfig: AppConfig = {
+        ...config,
+        provider: normalized,
+        model: offlineDefault,
+        apiKey: options?.apiKey ?? config.apiKey,
+      };
+
+      saveConfig(nextConfig);
+      onConfigChange?.(nextConfig);
+
+      setProvider(normalized);
+      setModel(offlineDefault);
+      setLastResponseId((prev) => (prev ? null : prev));
+      setPendingProvider(null);
+      // Close first so Ink erases the overlay before any follow-up redraw.
+      setOverlayMode(options?.openModelPicker ? "model" : "none");
+
+      void resolveDefaultModel(normalized, options?.apiKey).then((live) => {
+        if (live && live !== offlineDefault) {
+          const refined: AppConfig = {
+            ...config,
+            provider: normalized,
+            model: live,
+            apiKey: options?.apiKey ?? config.apiKey,
+          };
+          saveConfig(refined);
+          onConfigChange?.(refined);
+          setModel(live);
+        }
+      });
+    },
+    [config, model, onConfigChange],
+  );
+
+  const handleProviderSwitch = useCallback(
+    (newProvider: string, options?: { openModelPicker?: boolean }) => {
+      const normalized = normalizeProviderKey(newProvider);
+      if (normalized === provider) {
+        setOverlayMode(options?.openModelPicker ? "model" : "none");
+        return;
+      }
+
+      const ready = hasUsableApiKey(normalized, {
+        apiKey: config.apiKey,
+        keyBelongsToProvider: config.provider,
+      });
+
+      if (providerRequiresApiKey(normalized) && !ready) {
+        setPendingProvider(normalized);
+        setOverlayMode("provider-key");
+        return;
+      }
+
+      applyProviderSwitch(normalized, options);
+    },
+    [applyProviderSwitch, config.apiKey, config.provider, provider],
+  );
+
+  // Whenever loading starts/stops, reset or start a timer — but pause the
+  // timer while a confirmation overlay is displayed so we don't trigger a
+  // re‑render every second during apply_patch reviews.
+  useEffect(() => {
+    let handle: ReturnType<typeof setInterval> | null = null;
+    // Only tick the "thinking…" timer when the agent is actually processing
+    // a request *and* the user is not being asked to review a command.
+    if (loading && confirmationPrompt == null) {
+      setThinkingSeconds(0);
+      handle = setInterval(() => {
+        setThinkingSeconds((s) => s + 1);
+      }, 1000);
+    } else {
+      if (handle) {
+        clearInterval(handle);
+      }
+      setThinkingSeconds(0);
+    }
+    return () => {
+      if (handle) {
+        clearInterval(handle);
+      }
+    };
+  }, [loading, confirmationPrompt]);
+
+  // Notify desktop with a preview when an assistant response arrives.
+  const prevLoadingRef = useRef<boolean>(false);
+  useEffect(() => {
+    // Only notify when notifications are enabled.
+    if (!notify) {
+      prevLoadingRef.current = loading;
+      return;
+    }
+
+    if (
+      prevLoadingRef.current &&
+      !loading &&
+      confirmationPrompt == null &&
+      items.length > 0
+    ) {
+      if (process.platform === "darwin") {
+        // find the last assistant message
+        const assistantMessages = items.filter(
+          (i) => i.type === "message" && i.role === "assistant",
+        );
+        const last = assistantMessages[assistantMessages.length - 1];
+        if (last && last.content) {
+          const text = last.content
+            .map((c) => {
+              if (c.type === "output_text") {
+                return c.text;
+              }
+              return "";
+            })
+            .join("")
+            .trim();
+          const preview = text.replace(/\n/g, " ").slice(0, 100);
+          const safePreview = preview.replace(/"/g, '\\"');
+          const title = "CodexCLI";
+          const cwd = PWD;
+          spawn("osascript", [
+            "-e",
+            `display notification "${safePreview}" with title "${title}" subtitle "${cwd}" sound name "Ping"`,
+          ]);
+        }
+      }
+    }
+    prevLoadingRef.current = loading;
+  }, [notify, loading, confirmationPrompt, items, PWD]);
+
+  // Let's also track whenever the ref becomes available.
+  const agent = agentRef.current;
+  useEffect(() => {
+    log(`agentRef.current is now ${Boolean(agent)}`);
+  }, [agent]);
+
+  // ---------------------------------------------------------------------
+  // Dynamic layout constraints – keep total rendered rows <= terminal rows
+  // ---------------------------------------------------------------------
+
+  const { rows: terminalRows } = useTerminalSize();
+
+  useEffect(() => {
+    const processInitialInputItems = async () => {
+      if (
+        (!initialPrompt || initialPrompt.trim() === "") &&
+        (!initialImagePaths || initialImagePaths.length === 0)
+      ) {
+        return;
+      }
+      const inputItems = [
+        await createInputItem(initialPrompt || "", initialImagePaths || []),
+      ];
+      // Clear them to prevent subsequent runs.
+      setInitialPrompt("");
+      setInitialImagePaths([]);
+      agent?.run(inputItems);
+    };
+    processInitialInputItems();
+  }, [agent, initialPrompt, initialImagePaths]);
+
+  // Quietly ignore unknown CLI --model; header shows the active id.
+  useEffect(() => {
+    void getAvailableModels(provider).catch(() => {
+      /* ignore */
+    });
+  }, [provider]);
+
+  // Just render every item in order, no grouping/collapse.
+  const lastMessageBatch = items.map((item) => ({ item }));
+  const groupCounts: Record<string, number> = {};
+  const userMsgCount = items.filter(
+    (i) => i.type === "message" && i.role === "user",
+  ).length;
+
+  const contextLeftPercent = useMemo(
+    () => calculateContextPercentRemaining(items, model),
+    [items, model],
+  );
+
+  const activity = useMemo(() => latestActivityLabel(items), [items]);
+
+  // In-progress assistant text lives in the live footer (Static can't update).
+  const streamingItems = useMemo(
+    () => items.filter(isStreamingMessage),
+    [items],
+  );
+
+  // Drain queued follow-ups only when a turn *ends* (loading true → false).
+  // Never start a new run while one is in flight — that used to bump generation
+  // and silently kill the active turn.
+  useEffect(() => {
+    const wasLoading = wasLoadingRef.current;
+    wasLoadingRef.current = loading;
+
+    if (!agent) {
+      return;
+    }
+    if (!(wasLoading && !loading)) {
+      return;
+    }
+    if (agent.isRunning()) {
+      return;
+    }
+
+    const next = followUpQueueRef.current.shift();
+    setQueuedFollowUps(
+      followUpQueueRef.current.map(({ id, preview }) => ({ id, preview })),
+    );
+    if (!next) {
+      return;
+    }
+
+    // Only now burn the follow-up into the transcript and start the next turn.
+    setItems((prev) => [...prev, ...next.inputs]);
+    void agent.run(next.inputs, lastResponseIdRef.current || "");
+  }, [loading, agent]);
+
+  if (viewRollout) {
+    return (
+      <TerminalChatPastRollout
+        fileOpener={config.fileOpener}
+        session={viewRollout.session}
+        items={viewRollout.items}
+      />
+    );
+  }
+
+  // Ink <Static> history above + live footer (chatbox) below.
+  // Do NOT wrap this in height={rows} — that traps Static in the viewport and
+  // pushes the composer off-screen as replies grow (the scrolling bug).
+  // Static writes completed rows into terminal scrollback; the footer stays in
+  // the live Ink region at the bottom of the screen.
+  const history = agent ? (
+    <TerminalMessageHistory
+      setOverlayMode={setOverlayMode}
+      batch={lastMessageBatch}
+      groupCounts={groupCounts}
+      items={items}
+      userMsgCount={userMsgCount}
+      confirmationPrompt={confirmationPrompt}
+      loading={loading}
+      thinkingSeconds={thinkingSeconds}
+      fullStdout={fullStdout}
+      headerProps={{
+        terminalRows,
+        version: CLI_VERSION,
+        PWD,
+        model,
+        provider,
+        approvalPolicy,
+        colorsByPolicy,
+        agent,
+        initialImagePaths,
+        flexModeEnabled: Boolean(config.flexMode),
+      }}
+      fileOpener={config.fileOpener}
+    />
+  ) : (
+    <Box>
+      <Text color="gray">Initializing agent…</Text>
+    </Box>
+  );
+
+  return (
+    <Box flexDirection="column">
+      {history}
+      <Box flexShrink={0} flexDirection="column">
+        {streamingItems.length > 0 && (
+          <Box flexDirection="column" marginBottom={1}>
+            {streamingItems.map((item) => (
+              <TerminalChatResponseItem
+                key={item.id ?? "streaming"}
+                item={item}
+                fullStdout={fullStdout}
+                setOverlayMode={setOverlayMode}
+                fileOpener={config.fileOpener}
+              />
+            ))}
+          </Box>
+        )}
+        {overlayMode === "none" && agent && (
+          <TerminalChatInput
+            loading={loading}
+            setItems={setItems}
+            isNew={Boolean(userMsgCount === 0)}
+            setLastResponseId={setLastResponseId}
+            confirmationPrompt={confirmationPrompt}
+            explanation={explanation}
+            submitConfirmation={(
+              decision: ReviewDecision,
+              customDenyMessage?: string,
+            ) =>
+              submitConfirmation({
+                decision,
+                customDenyMessage,
+              })
+            }
+            contextLeftPercent={contextLeftPercent}
+            openOverlay={() => setOverlayMode("history")}
+            openModelOverlay={() => setOverlayMode("model")}
+            openProviderOverlay={() => setOverlayMode("provider")}
+            openApprovalOverlay={() => setOverlayMode("approval")}
+            openHelpOverlay={() => setOverlayMode("help")}
+            openSessionsOverlay={() => setOverlayMode("sessions")}
+            openDiffOverlay={() => {
+              const { isGitRepo, diff } = getGitDiff();
+              let text: string;
+              if (isGitRepo) {
+                text = diff;
+              } else {
+                text = "`/diff` — _not inside a git repository_";
+              }
+              setItems((prev) => [
+                ...prev,
+                {
+                  id: `diff-${Date.now()}`,
+                  type: "message",
+                  role: "system",
+                  content: [{ type: "input_text", text }],
+                },
+              ]);
+              setOverlayMode("none");
+            }}
+            onCompact={handleCompact}
+            active={overlayMode === "none"}
+            interruptAgent={() => {
+              if (!agent) {
+                return;
+              }
+              log(
+                "TerminalChat: interruptAgent invoked – calling agent.cancel()",
+              );
+              agent.cancel();
+              setLoading(false);
+
+              const queued = followUpQueueRef.current.length;
+              setItems((prev) => [
+                ...prev,
+                {
+                  id: `interrupt-${Date.now()}`,
+                  type: "message",
+                  role: "system",
+                  content: [
+                    {
+                      type: "input_text",
+                      text:
+                        queued > 0
+                          ? `Stopped. ${queued} queued follow-up${queued === 1 ? "" : "s"} will run next.`
+                          : "Stopped.",
+                    },
+                  ],
+                },
+              ]);
+            }}
+            sessionStatus={{
+              model,
+              provider,
+              approval: approvalPolicy,
+              cwd: PWD,
+            }}
+            onClearQueue={() => {
+              followUpQueueRef.current = [];
+              setQueuedFollowUps([]);
+            }}
+            submitInput={(inputs) => {
+              const busy = loading || agent.isRunning();
+              if (busy) {
+                // Queue only — do not cancel the current turn, and do not
+                // append to history until this follow-up actually starts.
+                const preview = inputs
+                  .flatMap((item) => {
+                    if (
+                      item.type === "message" &&
+                      Array.isArray(
+                        (item as { content?: Array<{ text?: string }> })
+                          .content,
+                      )
+                    ) {
+                      return (
+                        item as { content: Array<{ text?: string }> }
+                      ).content.map((c) => c.text ?? "");
+                    }
+                    return [];
+                  })
+                  .join(" ")
+                  .replace(/\s+/g, " ")
+                  .trim()
+                  .slice(0, 72);
+                followUpQueueRef.current.push({
+                  id: `queue-${Date.now()}-${followUpQueueRef.current.length}`,
+                  inputs,
+                  preview: preview || "(follow-up)",
+                });
+                setQueuedFollowUps(
+                  followUpQueueRef.current.map(({ id, preview: p }) => ({
+                    id,
+                    preview: p,
+                  })),
+                );
+                return {};
+              }
+              setItems((prev) => [...prev, ...inputs]);
+              void agent.run(inputs, lastResponseId || "");
+              return {};
+            }}
+            items={items}
+            thinkingSeconds={thinkingSeconds}
+            activity={activity}
+            queuedFollowUps={queuedFollowUps}
+          />
+        )}
+        {overlayMode === "history" && (
+          <HistoryOverlay items={items} onExit={() => setOverlayMode("none")} />
+        )}
+        {overlayMode === "sessions" && (
+          <SessionsOverlay
+            onView={async (p) => {
+              try {
+                const txt = await fs.readFile(p, "utf-8");
+                const data = JSON.parse(txt) as AppRollout;
+                setViewRollout(data);
+                setOverlayMode("none");
+              } catch {
+                setOverlayMode("none");
+              }
+            }}
+            onResume={(p) => {
+              setOverlayMode("none");
+              setInitialPrompt(`Resume this session: ${p}`);
+            }}
+            onExit={() => setOverlayMode("none")}
+          />
+        )}
+        {overlayMode === "model" && (
+          <ModelOverlay
+            currentModel={model}
+            currentProvider={provider}
+            hasLastResponse={Boolean(lastResponseId)}
+            onSelect={(allModels, newModel) => {
+              setOverlayMode("none");
+
+              if (!agent) {
+                log("TerminalChat: agent is not ready yet");
+              }
+              agent?.cancel();
+              setLoading(false);
+
+              if (allModels.length > 0 && !allModels.includes(newModel)) {
+                // custom model id — allow
+              }
+
+              setModel(newModel);
+              setLastResponseId((prev) =>
+                prev && newModel !== model ? null : prev,
+              );
+
+              saveConfig({
+                ...config,
+                model: newModel,
+                provider: provider,
+              });
+              onConfigChange?.({
+                ...config,
+                model: newModel,
+                provider: provider,
+              });
+            }}
+            onSelectProvider={(newProvider) => {
+              handleProviderSwitch(newProvider, { openModelPicker: true });
+            }}
+            onExit={() => setOverlayMode("none")}
+          />
+        )}
+
+        {overlayMode === "provider" && (
+          <ProviderOverlay
+            currentProvider={provider}
+            onSelect={(newProvider) => {
+              handleProviderSwitch(newProvider, { openModelPicker: true });
+            }}
+            onExit={() => setOverlayMode("none")}
+          />
+        )}
+
+        {overlayMode === "provider-key" && pendingProvider && (
+          <Setup
+            config={config}
+            forceProvider={pendingProvider}
+            keyOnly
+            onComplete={(next) => {
+              applyProviderSwitch(pendingProvider, {
+                openModelPicker: true,
+                apiKey: next.apiKey,
+              });
+            }}
+          />
+        )}
+
+        {overlayMode === "approval" && (
+          <ApprovalModeOverlay
+            currentMode={approvalPolicy}
+            onSelect={(newMode) => {
+              if (newMode === approvalPolicy) {
+                return;
+              }
+
+              setApprovalPolicy(newMode as ApprovalPolicy);
+              if (agentRef.current) {
+                (
+                  agentRef.current as unknown as {
+                    approvalPolicy: ApprovalPolicy;
+                  }
+                ).approvalPolicy = newMode as ApprovalPolicy;
+              }
+              setItems((prev) => [
+                ...prev,
+                {
+                  id: `switch-approval-${Date.now()}`,
+                  type: "message",
+                  role: "system",
+                  content: [
+                    {
+                      type: "input_text",
+                      text: `Switched approval mode to ${newMode}`,
+                    },
+                  ],
+                },
+              ]);
+
+              setOverlayMode("none");
+            }}
+            onExit={() => setOverlayMode("none")}
+          />
+        )}
+
+        {overlayMode === "help" && (
+          <HelpOverlay onExit={() => setOverlayMode("none")} />
+        )}
+
+        {overlayMode === "diff" && (
+          <DiffOverlay
+            diffText={diffText}
+            onExit={() => setOverlayMode("none")}
+          />
+        )}
+      </Box>
+    </Box>
+  );
+}

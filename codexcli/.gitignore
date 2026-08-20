@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+bin/*.js
+!bin/codexcli.js
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.codex.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+
+# Native binaries (from build)
+/bin/codex-aarch64-apple-darwin
+/bin/codex-aarch64-unknown-linux-musl
+/bin/codex-linux-sandbox-arm64
+/bin/codex-linux-sandbox-x64
+/bin/codex-x86_64-apple-darwin
+/bin/codex-x86_64-unknown-linux-musl
