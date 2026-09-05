@@ -18,7 +18,7 @@ The codebase is divided into strict layers. Never cross layer boundaries:
 | Common / Business Logic | `src/vs/workbench/contrib/codex/common` | Shared types, inference services, core logic |
 | Extensions | `extensions/codex-*` | Specialized UI and SCM enhancements |
 | Brand assets | `assets/branding/` | Source logos and platform icon generation |
-| Documentation | `docs/` | README assets, release notes, production rules |
+| README assets | `assets/` | Hero image and product screenshots |
 | Build / Runtime | `scripts/` | Build utilities, launch scripts only |
 
 Do not place business logic in `browser/`. Do not place UI rendering in `common/`. Extensions must not reach into `src/vs/workbench/contrib/codex/common` directly — go through defined service interfaces.
@@ -247,7 +247,6 @@ All inputs entering the inference layer, MCP tool executor, or SCM operations mu
 - Every exported service interface must have JSDoc comments describing its purpose and each method's contract.
 - Non-obvious algorithmic choices (e.g., token budget calculation, diff projection logic) must have inline explanatory comments.
 - `README` and setup documentation must be updated in the same PR as any change to the installation, build, or execution workflow.
-- Architecture decision records (ADRs) are stored in `docs/adr/` for any significant structural change.
 
 ---
 

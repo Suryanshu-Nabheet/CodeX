@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/readme.png" width="100%" alt="CodeX — AI-Native Engineering Environment" />
+  <img src="assets/readme.png" width="100%" alt="CodeX — AI-Native Engineering Environment" />
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ The ecosystem ships as **two integrated products**:
 ### CodeX IDE
 
 <p align="center">
-  <img src="docs/assets/screenshots/ide.png" width="100%" alt="CodeX IDE — Agentic Sidebar, Explorer, and Monaco Editor" />
+  <img src="assets/screenshots/ide.png" width="100%" alt="CodeX IDE — Agentic Sidebar, Explorer, and Monaco Editor" />
 </p>
 
 *The CodeX IDE showing the agentic chat sidebar, project file explorer with the integrated CodexCLI directory, and Monaco editor — running in full AI orchestration mode.*
@@ -41,7 +41,7 @@ The ecosystem ships as **two integrated products**:
 ### CodexCLI
 
 <p align="center">
-  <img src="docs/assets/screenshots/cli.png" width="100%" alt="CodexCLI — Autonomous Terminal AI Coding Agent" />
+  <img src="assets/screenshots/cli.png" width="100%" alt="CodexCLI — Autonomous Terminal AI Coding Agent" />
 </p>
 
 *CodexCLI in interactive TUI mode — showing the live model session header (model, directory, approval policy) and streaming response.*
@@ -246,16 +246,11 @@ codex/
 │   └── emulator/
 │
 ├── assets/
-│   └── branding/                       # Source brand art + icon generation script
-│       ├── generate-app-icons.mjs      # Builds platform icons into resources/
-│       └── CodeX-Curve.png             # Master logo art
-│
-├── docs/
-│   ├── assets/                         # README screenshots and marketing images
-│   │   ├── readme.png
-│   │   └── screenshots/
-│   ├── releases/                       # Per-version release notes
-│   └── rules.md                        # Production codebase rules
+│   ├── branding/                       # Source brand art + icon generation script
+│   │   ├── generate-app-icons.mjs      # Builds platform icons into resources/
+│   │   └── CodeX-Curve.png             # Master logo art
+│   ├── readme.png                      # README hero image
+│   └── screenshots/                    # Product screenshots for README
 │
 ├── resources/                          # Platform app icons (built from assets/branding)
 │
