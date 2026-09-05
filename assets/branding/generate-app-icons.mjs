@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = path.resolve(__dirname, '../..');
 const MASTER = path.join(__dirname, 'CodeX-Curve.png');
 
 // macOS dock squircles clip the outer ~10%. Keep the wordmark inside that

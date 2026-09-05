@@ -24,7 +24,7 @@ import { splitRecentLabel } from '../../../../base/common/labels.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 
-/* eslint-disable */ // Void
+/* eslint-disable */
 import { VIEWLET_ID as REMOTE_EXPLORER_VIEWLET_ID } from '../../../contrib/remote/browser/remoteExplorer.js';
 /* eslint-enable */
 

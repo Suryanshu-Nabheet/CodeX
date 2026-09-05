@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/readme.png" width="100%" alt="CodeX — AI-Native Engineering Environment" />
+  <img src="docs/assets/readme.png" width="100%" alt="CodeX — AI-Native Engineering Environment" />
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ The ecosystem ships as **two integrated products**:
 ### CodeX IDE
 
 <p align="center">
-  <img src="public/screenshots/ide.png" width="100%" alt="CodeX IDE — Agentic Sidebar, Explorer, and Monaco Editor" />
+  <img src="docs/assets/screenshots/ide.png" width="100%" alt="CodeX IDE — Agentic Sidebar, Explorer, and Monaco Editor" />
 </p>
 
 *The CodeX IDE showing the agentic chat sidebar, project file explorer with the integrated CodexCLI directory, and Monaco editor — running in full AI orchestration mode.*
@@ -41,7 +41,7 @@ The ecosystem ships as **two integrated products**:
 ### CodexCLI
 
 <p align="center">
-  <img src="public/screenshots/cli.png" width="100%" alt="CodexCLI — Autonomous Terminal AI Coding Agent" />
+  <img src="docs/assets/screenshots/cli.png" width="100%" alt="CodexCLI — Autonomous Terminal AI Coding Agent" />
 </p>
 
 *CodexCLI in interactive TUI mode — showing the live model session header (model, directory, approval policy) and streaming response.*
@@ -245,11 +245,20 @@ codex/
 │   ├── codex-timeline/
 │   └── emulator/
 │
-├── public/
-│   ├── banner.png
-│   └── screenshots/
-│       ├── ide.png
-│       └── cli.png
+├── assets/
+│   └── branding/                       # Source brand art + icon generation script
+│       ├── generate-app-icons.mjs      # Builds platform icons into resources/
+│       └── CodeX-Curve.png             # Master logo art
+│
+├── docs/
+│   ├── assets/                         # README screenshots and marketing images
+│   │   ├── readme.png
+│   │   └── screenshots/
+│   ├── releases/                       # Per-version release notes
+│   └── rules.md                        # Production codebase rules
+│
+├── resources/                          # Platform app icons (built from assets/branding)
+│
 ├── scripts/
 │   ├── setup.sh        # End-to-end IDE setup (deps → React → compile → launch)
 │   └── code.sh         # Launch CodeX IDE

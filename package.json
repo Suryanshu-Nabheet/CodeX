@@ -69,7 +69,8 @@
     "update-build-ts-version": "npm install typescript@next && tsc -p ./build/tsconfig.build.json",
     "codexcli:setup": "cd codexcli && ./scripts/setup.sh --no-launch",
     "codexcli:build": "cd codexcli && npm run build",
-    "codexcli:dev": "cd codexcli && ./scripts/dev.sh"
+    "codexcli:dev": "cd codexcli && ./scripts/dev.sh",
+    "icons:generate": "node assets/branding/generate-app-icons.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",

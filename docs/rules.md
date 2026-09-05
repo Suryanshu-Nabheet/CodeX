@@ -17,6 +17,8 @@ The codebase is divided into strict layers. Never cross layer boundaries:
 | Frontend / Contributions | `src/vs/workbench/contrib/codex/browser` | React components, view zones, workbench contribution points |
 | Common / Business Logic | `src/vs/workbench/contrib/codex/common` | Shared types, inference services, core logic |
 | Extensions | `extensions/codex-*` | Specialized UI and SCM enhancements |
+| Brand assets | `assets/branding/` | Source logos and platform icon generation |
+| Documentation | `docs/` | README assets, release notes, production rules |
 | Build / Runtime | `scripts/` | Build utilities, launch scripts only |
 
 Do not place business logic in `browser/`. Do not place UI rendering in `common/`. Extensions must not reach into `src/vs/workbench/contrib/codex/common` directly — go through defined service interfaces.
