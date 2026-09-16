@@ -2834,6 +2834,11 @@ const CommandBarInChat = ({ hasPlanAbove }: { hasPlanAbove?: boolean }) => {
 		}
 	}, [fileDetailsOpenedState, setFileDetailsOpenedState, numFilesChanged])
 
+	// Keep the composer clean until the agent has produced an actual file change.
+	if (numFilesChanged === 0) {
+		return null
+	}
+
 
 	const isFinishedMakingThreadChanges = (
 		// there are changed files
