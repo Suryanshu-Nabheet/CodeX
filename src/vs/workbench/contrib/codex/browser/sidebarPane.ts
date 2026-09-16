@@ -108,7 +108,7 @@ export const CODEX_VIEW_ID = CODEX_VIEW_CONTAINER_ID
 const viewContainerRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 const container = viewContainerRegistry.registerViewContainer({
 	id: CODEX_VIEW_CONTAINER_ID,
-	title: nls.localize2('codexContainer', 'Chat'), // this is used to say "Codex" (Ctrl + L)
+		title: nls.localize2('codexContainer', 'Chat'), // CodeX is the application; Chat is the feature
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [CODEX_VIEW_CONTAINER_ID, {
 		mergeViewWithContainerWhenSingleView: true,
 		orientation: Orientation.HORIZONTAL,
@@ -130,7 +130,7 @@ viewsRegistry.registerViews([{
 	id: CODEX_VIEW_ID,
 	hideByDefault: false, // start open
 	// containerIcon: codexViewIcon,
-	name: nls.localize2('codexChat', 'Chat'), // this says ... : CHAT
+	name: nls.localize2('codexChat', 'Chat'),
 	ctorDescriptor: new SyncDescriptor(SidebarViewPane),
 	canToggleVisibility: false,
 	canMoveView: false, // can't move this out of its container
@@ -154,7 +154,7 @@ registerAction2(class extends Action2 {
 	constructor() {
 		super({
 			id: CODEX_OPEN_SIDEBAR_ACTION_ID,
-			title: 'Open Codex Sidebar',
+			title: 'Open Chat Sidebar',
 		})
 	}
 	run(accessor: ServicesAccessor): void {
