@@ -18,11 +18,11 @@ import { ModelDropdown, } from '../codex-settings-tsx/ModelDropdown.js';
 import { PastThreadsList } from './SidebarThreadSelector.js';
 import { CODEX_CTRL_L_ACTION_ID } from '../../../actionIDs.js';
 import { CODEX_OPEN_SETTINGS_ACTION_ID } from '../../../codexSettingsPane.js';
-import { ChatMode, displayInfoOfProviderName, FeatureName, isFeatureNameDisabled } from '../../../../../../../workbench/contrib/codex/common/codexSettingsTypes.js';
+import { ChatMode, displayInfoOfProviderName, FeatureName } from '../../../../../../../workbench/contrib/codex/common/codexSettingsTypes.js';
 import { ICommandService } from '../../../../../../../platform/commands/common/commands.js';
 import { WarningBox } from '../codex-settings-tsx/WarningBox.js';
 import { getModelCapabilities, getIsReasoningEnabledState } from '../../../../common/modelCapabilities.js';
-import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CircleEllipsis, Folder, ALargeSmall, TypeOutline, FileText, GitBranch, History, Terminal, AtSign } from 'lucide-react';
+import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CircleEllipsis, Folder, TypeOutline, FileText, GitBranch, History, Terminal, AtSign } from 'lucide-react';
 import { ChatMessage, CheckpointEntry, StagingSelectionItem, ToolMessage } from '../../../../common/chatThreadServiceTypes.js';
 import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, BuiltinToolName, ToolName, LintErrorItem, ToolApprovalType, toolApprovalTypes } from '../../../../common/toolsServiceTypes.js';
 import { CopyButton, EditToolAcceptRejectButtonsHTML, IconShell1, JumpToFileButton, JumpToTerminalButton, StatusIndicator, StatusIndicatorForApplyButton, useApplyStreamState, useEditToolStreamState } from '../markdown/ApplyBlockHoverButtons.js';
@@ -410,11 +410,11 @@ export const CodexChatArea: React.FC<CodexChatAreaProps> = ({
 			ref={divRef}
 			className={`
 				gap-y-1
-                flex flex-col ${compact ? 'p-1.5 px-2.5' : 'p-2'} relative input text-left shrink-0
-                rounded-md
+	                flex flex-col ${compact ? 'p-1.5 px-2.5' : 'p-2.5'} relative input text-left shrink-0
+	                rounded-xl
                 bg-codex-bg-1
 				transition-all duration-200
-				border border-codex-border-3 focus-within:border-codex-border-1 hover:border-codex-border-1
+					border border-codex-border-3 shadow-sm focus-within:border-codex-border-1 focus-within:shadow-md hover:border-codex-border-1
 				max-h-[80vh] overflow-y-auto
                 ${className}
             `}
@@ -3197,7 +3197,7 @@ export const SidebarChat = () => {
 		}
 	}, [activeURI, selections, setSelections, accessor, lastAutoTaggedPath])
 
-	const isDisabled = instructionsAreEmpty || !!isFeatureNameDisabled('Chat', settingsState)
+	const isDisabled = instructionsAreEmpty
 
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -3409,17 +3409,6 @@ export const SidebarChat = () => {
 		ref={sidebarRef}
 		className='w-full flex-1 flex flex-col overflow-auto px-3 pb-4'
 	>
-		<div className='px-1 pb-2 pt-3'>
-			<div className='flex items-center gap-2'>
-				<div className='flex size-8 items-center justify-center rounded-lg bg-codex-link-color/15 text-codex-link-color'>
-					<ALargeSmall size={16} />
-				</div>
-				<div>
-					<h2 className='text-[13px] font-semibold text-codex-fg-1'>Build with CodeX</h2>
-					<p className='mt-0.5 text-[11px] text-codex-fg-4'>Your AI pair for exploring and shipping code.</p>
-				</div>
-			</div>
-		</div>
 		<ErrorBoundary>
 			{landingPageInput}
 		</ErrorBoundary>

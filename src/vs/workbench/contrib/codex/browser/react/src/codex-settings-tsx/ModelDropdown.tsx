@@ -13,7 +13,7 @@ import { CODEX_OPEN_SETTINGS_ACTION_ID, CODEX_TOGGLE_SETTINGS_ACTION_ID } from '
 import { modelFilterOfFeatureName, ModelOption } from '../../../../../../../workbench/contrib/codex/common/codexSettingsService.js'
 import { WarningBox } from './WarningBox.js'
 import ErrorBoundary from '../sidebar-tsx/ErrorBoundary.js'
-import { ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 const optionsEqual = (m1: ModelOption[], m2: ModelOption[]) => {
 	if (m1.length !== m2.length) return false
@@ -96,7 +96,6 @@ export const ModelDropdown = ({ featureName, className }: { featureName: Feature
 			className='group flex items-center gap-1.5 rounded-md border border-codex-border-2 bg-codex-bg-1/50 px-2 py-1 text-[11px] text-codex-fg-3 transition-colors hover:border-codex-border-1 hover:text-codex-fg-1'
 			aria-label='Set up a model'
 		>
-			<Sparkles size={12} className='text-codex-link-color' />
 			<span>{
 				emptyMessage && emptyMessage.priority === 'always' ? emptyMessage.message :
 					isDisabled === 'needToEnableModel' ? 'Choose a model to start'

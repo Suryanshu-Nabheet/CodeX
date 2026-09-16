@@ -19,7 +19,7 @@ export const PastThreadsList = ({ className = '' }: { className?: string }) => {
 	const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
 	const threadsState = useChatThreadsState()
-	const { allThreads } = threadsState
+	const { allThreads, currentThreadId } = threadsState
 
 	const streamState = useFullChatThreadsStreamState()
 
@@ -60,6 +60,7 @@ export const PastThreadsList = ({ className = '' }: { className?: string }) => {
 							hoveredIdx={hoveredIdx}
 							setHoveredIdx={setHoveredIdx}
 							isRunning={runningThreadIds[pastThread.id]}
+							isCurrent={pastThread.id === currentThreadId}
 						/>
 					);
 				})
@@ -174,6 +175,7 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 	hoveredIdx: number | null,
 	setHoveredIdx: (idx: number | null) => void,
 	isRunning: IsRunningType | undefined,
+	isCurrent: boolean,
 }
 
 ) => {
@@ -233,7 +235,7 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 	return <div
 		key={pastThread.id}
 		className={`
-			group py-2 px-2.5 rounded-lg text-sm border border-transparent bg-codex-bg-1/30 hover:border-codex-border-3 hover:bg-codex-bg-1/60 cursor-pointer opacity-85 hover:opacity-100 transition-colors
+			group py-2 px-2.5 rounded-lg text-sm ${isCurrent ? 'bg-codex-link-color/12 text-codex-fg-1' : 'bg-codex-bg-1/25 text-codex-fg-2'} hover:bg-codex-bg-1/70 cursor-pointer opacity-90 hover:opacity-100 transition-colors
 		`}
 		onClick={() => {
 			chatThreadsService.switchToThread(pastThread.id);
