@@ -233,7 +233,7 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 	return <div
 		key={pastThread.id}
 		className={`
-			py-1 px-2 rounded text-sm bg-zinc-700/5 hover:bg-zinc-700/10 dark:bg-zinc-300/5 dark:hover:bg-zinc-300/10 cursor-pointer opacity-80 hover:opacity-100
+			group py-2 px-2.5 rounded-lg text-sm border border-transparent bg-codex-bg-1/30 hover:border-codex-border-3 hover:bg-codex-bg-1/60 cursor-pointer opacity-85 hover:opacity-100 transition-colors
 		`}
 		onClick={() => {
 			chatThreadsService.switchToThread(pastThread.id);
@@ -241,7 +241,7 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 		onMouseEnter={() => setHoveredIdx(idx)}
 		onMouseLeave={() => setHoveredIdx(null)}
 	>
-		<div className="flex items-center justify-between gap-1">
+		<div className="flex items-center justify-between gap-2">
 			<span className="flex items-center gap-2 min-w-0 overflow-hidden">
 				{/* spinner */}
 				{isRunning === 'LLM' || isRunning === 'tool' || isRunning === 'idle' ? <LoaderCircle className="animate-spin bg-codex-stroke-1 flex-shrink-0 flex-grow-0" size={14} />
@@ -250,7 +250,7 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 						:
 						null}
 				{/* name */}
-				<span className="truncate overflow-hidden text-ellipsis"
+					<span className="truncate overflow-hidden text-ellipsis text-codex-fg-2"
 					data-tooltip-id='codex-tooltip'
 					data-tooltip-content={numMessages + ' messages'}
 					data-tooltip-place='top'
@@ -259,7 +259,7 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 				{/* <span className='opacity-60'>{`(${numMessages})`}</span> */}
 			</span>
 
-			<div className="flex items-center gap-x-1 opacity-60">
+				<div className="flex items-center gap-x-1 opacity-60 group-hover:opacity-100">
 				{idx === hoveredIdx ?
 					<>
 						{/* trash icon */}

@@ -36,6 +36,29 @@ import { ToolApprovalTypeSwitch } from '../codex-settings-tsx/Settings.js';
 import { persistentTerminalNameOfId } from '../../../terminalToolService.js';
 import { removeMCPToolNamePrefix } from '../../../../common/mcpServiceTypes.js';
 
+const starterPrompts = [
+	{ title: 'Understand this project', subtitle: 'Get a concise overview of the codebase', icon: Folder },
+	{ title: 'Explain the current file', subtitle: 'Walk through the code and key decisions', icon: FileText },
+	{ title: 'Review my changes', subtitle: 'Find bugs and suggest improvements', icon: GitBranch },
+] as const;
+
+const SuggestedPrompt = ({ title, subtitle, icon: Icon, onClick }: { title: string, subtitle: string, icon: typeof Folder, onClick: () => void }) => (
+	<button
+		type='button'
+		className='group flex w-full items-center gap-3 rounded-lg border border-transparent bg-codex-bg-1/35 px-3 py-2.5 text-left transition-colors hover:border-codex-border-3 hover:bg-codex-bg-1/70'
+		onClick={onClick}
+	>
+		<span className='flex size-7 shrink-0 items-center justify-center rounded-md bg-codex-bg-1 text-codex-fg-3 group-hover:text-codex-fg-1'>
+			<Icon size={14} />
+		</span>
+		<span className='min-w-0'>
+			<span className='block truncate text-[12px] font-medium text-codex-fg-2'>{title}</span>
+			<span className='mt-0.5 block truncate text-[11px] text-codex-fg-4'>{subtitle}</span>
+		</span>
+		<ChevronRight size={14} className='ml-auto shrink-0 text-codex-fg-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
+	</button>
+);
+
 
 
 export const IconX = ({ size, className = '', ...props }: { size: number, className?: string } & React.SVGProps<SVGSVGElement>) => {
@@ -3358,19 +3381,9 @@ export const SidebarChat = () => {
 	const isLandingPage = previousMessages.length === 0
 
 
-	const initiallySuggestedPromptsHTML = <div className='flex flex-col gap-2 w-full text-nowrap text-codex-fg-3 select-none'>
-		{[
-			'Summarize my codebase',
-			'How do types work in Rust?',
-			'Create a .codexrules file for me'
-		].map((text, index) => (
-			<div
-				key={index}
-				className='py-1 px-2 rounded text-sm bg-zinc-700/5 hover:bg-zinc-700/10 dark:bg-zinc-300/5 dark:hover:bg-zinc-300/10 cursor-pointer opacity-80 hover:opacity-100'
-				onClick={() => onSubmit(text)}
-			>
-				{text}
-			</div>
+	const initiallySuggestedPromptsHTML = <div className='flex flex-col gap-2 w-full select-none'>
+		{starterPrompts.map(({ title, subtitle, icon }) => (
+			<SuggestedPrompt key={title} title={title} subtitle={subtitle} icon={icon} onClick={() => onSubmit(title)} />
 		))}
 	</div>
 
@@ -3394,20 +3407,31 @@ export const SidebarChat = () => {
 
 	const landingPageContent = <div
 		ref={sidebarRef}
-		className='w-full flex-1 flex flex-col overflow-auto px-4 pb-4'
+		className='w-full flex-1 flex flex-col overflow-auto px-3 pb-4'
 	>
+		<div className='px-1 pb-2 pt-3'>
+			<div className='flex items-center gap-2'>
+				<div className='flex size-8 items-center justify-center rounded-lg bg-codex-link-color/15 text-codex-link-color'>
+					<ALargeSmall size={16} />
+				</div>
+				<div>
+					<h2 className='text-[13px] font-semibold text-codex-fg-1'>Build with CodeX</h2>
+					<p className='mt-0.5 text-[11px] text-codex-fg-4'>Your AI pair for exploring and shipping code.</p>
+				</div>
+			</div>
+		</div>
 		<ErrorBoundary>
 			{landingPageInput}
 		</ErrorBoundary>
 
 		{Object.keys(chatThreadsState.allThreads).length > 1 ? // show if there are threads
 			<ErrorBoundary>
-				<div className='pt-6 mb-2 text-codex-fg-3 text-root select-none pointer-events-none'>Previous Threads</div>
+				<div className='mb-2 mt-5 px-1 text-[11px] font-semibold uppercase tracking-wider text-codex-fg-4 select-none'>Recent threads</div>
 				<PastThreadsList />
 			</ErrorBoundary>
 			:
 			<ErrorBoundary>
-				<div className='pt-6 mb-2 text-codex-fg-3 text-root select-none pointer-events-none'>Suggestions</div>
+				<div className='mb-2 mt-5 px-1 text-[11px] font-semibold uppercase tracking-wider text-codex-fg-4 select-none'>Start with a prompt</div>
 				{initiallySuggestedPromptsHTML}
 			</ErrorBoundary>
 		}
