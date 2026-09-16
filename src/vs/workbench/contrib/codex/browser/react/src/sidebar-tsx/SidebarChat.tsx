@@ -414,7 +414,7 @@ export const CodexChatArea: React.FC<CodexChatAreaProps> = ({
 	                rounded-xl
                 bg-codex-bg-1
 				transition-all duration-200
-					border border-codex-border-3 shadow-sm hover:border-codex-border-1
+					border border-codex-border-3 shadow-sm
 				max-h-[80vh] overflow-y-auto
                 ${className}
             `}
@@ -3368,7 +3368,7 @@ export const SidebarChat = () => {
 	>
 		<CodexInputBox2
 			enableAtToMention
-			className={`${isLandingPage ? 'min-h-[180px]' : 'min-h-[42px] max-h-[140px]'} px-0.5 py-0.5`}
+			className={`${isLandingPage ? 'min-h-[81px]' : 'min-h-[42px] max-h-[140px]'} px-0.5 py-0.5`}
 			placeholder={`@ to mention, ${keybindingString ? `${keybindingString} to add a selection. ` : ''}Enter instructions...`}
 			onChangeText={onChangeText}
 			onKeyDown={onKeyDown}

@@ -829,7 +829,7 @@ export const CodexInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fu
 
 			disabled={!isEnabled}
 
-			className={`w-full resize-none max-h-[500px] overflow-y-auto text-codex-fg-1 placeholder:text-codex-fg-3 ${className}`}
+			className={`w-full resize-none max-h-[500px] overflow-y-auto text-codex-fg-1 placeholder:text-codex-fg-3 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 ${className}`}
 			style={{
 				// defaultInputBoxStyles
 				background: asCssVariable(inputBackground),
@@ -2158,4 +2158,3 @@ export const CodexDiffEditor = ({ uri, searchReplaceBlocks, language }: { uri?: 
 		</div>
 	);
 };
-
