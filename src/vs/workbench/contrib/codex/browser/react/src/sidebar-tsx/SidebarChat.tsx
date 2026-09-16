@@ -37,9 +37,9 @@ import { persistentTerminalNameOfId } from '../../../terminalToolService.js';
 import { removeMCPToolNamePrefix } from '../../../../common/mcpServiceTypes.js';
 
 const starterPrompts = [
-	{ title: 'Understand this project', subtitle: 'Get a concise overview of the codebase', icon: Folder },
-	{ title: 'Explain the current file', subtitle: 'Walk through the code and key decisions', icon: FileText },
-	{ title: 'Review my changes', subtitle: 'Find bugs and suggest improvements', icon: GitBranch },
+	{ title: 'Understand this project', subtitle: 'Map the main folders, entry points, and architecture', prompt: 'Give me a concise map of this project: explain the main folders, entry points, and how the pieces fit together.', icon: Folder },
+	{ title: 'Explain the current file', subtitle: 'Walk through its purpose, flow, and key decisions', prompt: 'Explain the current file clearly: describe its purpose, the main flow, important dependencies, and any surprising decisions.', icon: FileText },
+	{ title: 'Review my changes', subtitle: 'Find bugs, edge cases, and practical improvements', prompt: 'Review my current changes like a senior engineer. Look for bugs, regressions, missing edge cases, and concrete improvements.', icon: GitBranch },
 ] as const;
 
 const SuggestedPrompt = ({ title, subtitle, icon: Icon, onClick }: { title: string, subtitle: string, icon: typeof Folder, onClick: () => void }) => (
@@ -3382,7 +3382,7 @@ export const SidebarChat = () => {
 
 	const initiallySuggestedPromptsHTML = <div className='flex flex-col gap-2 w-full select-none'>
 		{starterPrompts.map(({ title, subtitle, icon }) => (
-			<SuggestedPrompt key={title} title={title} subtitle={subtitle} icon={icon} onClick={() => onSubmit(title)} />
+			<SuggestedPrompt key={title} title={title} subtitle={subtitle} icon={icon} onClick={() => onSubmit(prompt)} />
 		))}
 	</div>
 
