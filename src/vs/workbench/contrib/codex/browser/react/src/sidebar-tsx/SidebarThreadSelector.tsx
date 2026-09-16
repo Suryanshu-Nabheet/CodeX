@@ -169,7 +169,7 @@ const TrashButton = ({ threadId }: { threadId: string }) => {
 	)
 }
 
-const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunning }: {
+const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunning, isCurrent }: {
 	pastThread: ThreadType,
 	idx: number,
 	hoveredIdx: number | null,
