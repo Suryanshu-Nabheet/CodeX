@@ -3350,8 +3350,11 @@ export const SidebarChat = () => {
 		}
 	}, [onSubmit, onAbort, isRunning])
 
+	const isLandingPage = previousMessages.length === 0
+
 	const inputChatArea = <CodexChatArea
 		featureName='Chat'
+		compact={!isLandingPage}
 		onSubmit={() => onSubmit()}
 		onAbort={onAbort}
 		isStreaming={!!isRunning}
@@ -3365,7 +3368,7 @@ export const SidebarChat = () => {
 	>
 		<CodexInputBox2
 			enableAtToMention
-			className={`min-h-[81px] px-0.5 py-0.5`}
+			className={`${isLandingPage ? 'min-h-[180px]' : 'min-h-[42px] max-h-[140px]'} px-0.5 py-0.5`}
 			placeholder={`@ to mention, ${keybindingString ? `${keybindingString} to add a selection. ` : ''}Enter instructions...`}
 			onChangeText={onChangeText}
 			onKeyDown={onKeyDown}
@@ -3377,10 +3380,6 @@ export const SidebarChat = () => {
 
 	</CodexChatArea>
 
-
-	const isLandingPage = previousMessages.length === 0
-
-
 	const initiallySuggestedPromptsHTML = <div className='flex flex-col gap-2 w-full select-none'>
 		{starterPrompts.map(({ title, subtitle, icon }) => (
 			<SuggestedPrompt key={title} title={title} subtitle={subtitle} icon={icon} onClick={() => onSubmit(title)} />
@@ -3389,7 +3388,7 @@ export const SidebarChat = () => {
 
 
 
-	const threadPageInput = <div key={'input' + chatThreadsState.currentThreadId}>
+	const threadPageInput = <div key={'input' + chatThreadsState.currentThreadId} className='sticky bottom-0 z-10 bg-codex-bg-2/95 pt-2 backdrop-blur-sm'>
 		<div className='flex flex-col px-2 w-full overflow-y-auto'>
 			{latestPlan && <PlanBlock content={latestPlan} isStreaming={!!isRunning} className='rounded-b-none border-b-0' />}
 			<CommandBarInChat hasPlanAbove={!!latestPlan} />
