@@ -1002,7 +1002,7 @@ export const CodexSimpleInputBox = ({ value, onChangeValue, placeholder, classNa
 			onChange={handleChange}
 			placeholder={placeholder}
 			disabled={disabled}
-			className={`w-full resize-none bg-codex-bg-1 text-codex-fg-1 placeholder:text-codex-fg-3 border border-codex-border-2 focus:border-codex-border-1
+			className={`w-full resize-none bg-codex-bg-1 text-codex-fg-1 placeholder:text-codex-fg-3 border border-codex-border-2
 				${compact ? 'py-1 px-2' : 'py-2 px-4 '}
 				rounded
 				${disabled ? 'opacity-50 cursor-not-allowed' : ''}
@@ -2158,5 +2158,4 @@ export const CodexDiffEditor = ({ uri, searchReplaceBlocks, language }: { uri?: 
 		</div>
 	);
 };
-
 

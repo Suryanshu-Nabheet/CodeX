@@ -414,7 +414,7 @@ export const CodexChatArea: React.FC<CodexChatAreaProps> = ({
 	                rounded-xl
                 bg-codex-bg-1
 				transition-all duration-200
-					border border-codex-border-3 shadow-sm focus-within:border-codex-border-1 focus-within:shadow-md hover:border-codex-border-1
+					border border-codex-border-3 shadow-sm hover:border-codex-border-1
 				max-h-[80vh] overflow-y-auto
                 ${className}
             `}
