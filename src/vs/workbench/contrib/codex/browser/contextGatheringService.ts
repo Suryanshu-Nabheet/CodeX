@@ -37,6 +37,7 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 	_serviceBrand: undefined;
 	private readonly _DEFAULT_SNIPPET_LINE_COUNT = 15;
 	private readonly _ARCHITECTURAL_CONTEXT_LINE_COUNT = 100;
+	private readonly _MAX_CONTEXT_CHARS = 12_000;
 	// Cache holds the most recent list of snippets.
 	private _cache: string[] = [];
 	private _snippetIntervals: IVisitedInterval[] = [];
@@ -53,11 +54,19 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 		this._register(this._modelService.onModelAdded(model => this._subscribeToModel(model)));
 	}
 
-	private _updateDebounce: any;
+	override dispose(): void {
+		for (const timeout of this._updateDebounceOfModel.values()) clearTimeout(timeout);
+		this._updateDebounceOfModel.clear();
+		super.dispose();
+	}
+
+	private readonly _updateDebounceOfModel = new Map<ITextModel, ReturnType<typeof setTimeout>>();
 	private _subscribeToModel(model: ITextModel): void {
 		this._register(model.onDidChangeContent(() => {
-			if (this._updateDebounce) clearTimeout(this._updateDebounce);
-			this._updateDebounce = setTimeout(() => {
+			const previous = this._updateDebounceOfModel.get(model);
+			if (previous) clearTimeout(previous);
+			const updateTimeout = setTimeout(() => {
+				this._updateDebounceOfModel.delete(model);
 				const editor = this._codeEditorService.getFocusedCodeEditor();
 				if (editor && editor.getModel() === model) {
 					const pos = editor.getPosition();
@@ -66,6 +75,7 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 					}
 				}
 			}, 50); // Debounce to avoid excessive symbol lookups
+			this._updateDebounceOfModel.set(model, updateTimeout);
 		}));
 	}
 
@@ -111,9 +121,15 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 			return b.length - a.length; // Prefer more detailed context if other factors are equal
 		});
 
-		// Cap total context size to prevent LLM overload (approx 3000 tokens)
-		this._cache = prioritized.slice(0, 15); 
-		console.log('Cache updated with prioritized snippets:', this._cache.length);
+		// Cap total context size to prevent LLM overload (approximately 3,000 tokens).
+		this._cache = [];
+		let totalChars = 0;
+		for (const snippet of prioritized) {
+			if (totalChars >= this._MAX_CONTEXT_CHARS) break;
+			const remaining = this._MAX_CONTEXT_CHARS - totalChars;
+			this._cache.push(snippet.slice(0, remaining));
+			totalChars += Math.min(snippet.length, remaining);
+		}
 	}
 
 	public getCachedSnippets(): string[] {
@@ -407,7 +423,8 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 					const siblingModel = this._modelService.getModel(sibling.resource);
 					let content = '';
 					if (siblingModel) {
-						content = siblingModel.getValueInRange(new Range(1, 1, 30, 1)); // First 30 lines (exports/imports)
+						const endLine = Math.min(30, siblingModel.getLineCount());
+						content = siblingModel.getValueInRange(new Range(1, 1, endLine, siblingModel.getLineMaxColumn(endLine))); // First 30 lines (exports/imports)
 					} else {
 						const fileContent = await this._fileService.readFile(sibling.resource);
 						content = fileContent.value.toString().split('\n').slice(0, 30).join('\n');
@@ -431,8 +448,7 @@ class ContextGatheringService extends Disposable implements IContextGatheringSer
 	private async _gatherHotFiles(snippets: Set<string>): Promise<void> {
 		try {
 			// Mission critical files that define the project environment
-			const hotFiles = ['package.json', 'tsconfig.json', 'README.md', 'src/vs/workbench/contrib/codex/common/prompt/prompts.ts']; 
-			// Note: prompts.ts is added because it's the core of the AI logic in this specific project
+			const hotFiles = ['package.json', 'tsconfig.json', 'README.md'];
 			
 			for (const fileName of hotFiles) {
 				const models = this._modelService.getModels();

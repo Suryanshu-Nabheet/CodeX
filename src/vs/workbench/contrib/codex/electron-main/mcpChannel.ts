@@ -136,8 +136,8 @@ export class MCPChannel implements IServerChannel {
 				// check if already refreshing
 				if (this._refreshingServerNames.has(serverName)) return
 				this._refreshingServerNames.add(serverName)
-
-				const prevServer = this.infoOfClientId[serverName]?.mcpServer;
+				try {
+					const prevServer = this.infoOfClientId[serverName]?.mcpServer;
 
 				// close and delete the old client
 				if (type === 'removed' || type === 'updated') {
@@ -152,12 +152,11 @@ export class MCPChannel implements IServerChannel {
 					this.infoOfClientId[serverName] = clientInfo
 					this.mcpEmitters.serverEvent.onAdd.fire({ response: { newServer: clientInfo.mcpServer, name: serverName, } })
 				}
+				} finally {
+					this._refreshingServerNames.delete(serverName)
+				}
 			})
 		)
-
-		allChanges.forEach(({ serverName, type }) => {
-			this._refreshingServerNames.delete(serverName)
-		})
 
 	}
 
@@ -175,7 +174,7 @@ export class MCPChannel implements IServerChannel {
 				await client.connect(transport);
 				console.log(`Connected via HTTP to ${serverName}`);
 				const { tools } = await client.listTools()
-				const toolsWithUniqueName = tools.map(({ name, ...rest }) => ({ name: this._addUniquePrefix(name), ...rest }))
+					const toolsWithUniqueName = tools.map(({ name, ...rest }) => ({ name: this._addUniquePrefix(name, serverName), ...rest }))
 				info = {
 					status: isOn ? 'success' : 'offline',
 					tools: toolsWithUniqueName,
@@ -186,7 +185,7 @@ export class MCPChannel implements IServerChannel {
 				transport = new SSEClientTransport(server.url);
 				await client.connect(transport);
 				const { tools } = await client.listTools()
-				const toolsWithUniqueName = tools.map(({ name, ...rest }) => ({ name: this._addUniquePrefix(name), ...rest }))
+					const toolsWithUniqueName = tools.map(({ name, ...rest }) => ({ name: this._addUniquePrefix(name, serverName), ...rest }))
 				console.log(`Connected via SSE to ${serverName}`);
 				info = {
 					status: isOn ? 'success' : 'offline',
@@ -209,7 +208,7 @@ export class MCPChannel implements IServerChannel {
 
 			// Get the tools from the server
 			const { tools } = await client.listTools()
-			const toolsWithUniqueName = tools.map(({ name, ...rest }) => ({ name: this._addUniquePrefix(name), ...rest }))
+			const toolsWithUniqueName = tools.map(({ name, ...rest }) => ({ name: this._addUniquePrefix(name, serverName), ...rest }))
 
 			// Create a full command string for display
 			const fullCommand = `${server.command} ${server.args?.join(' ') || ''}`
@@ -229,8 +228,9 @@ export class MCPChannel implements IServerChannel {
 		return { _client: client, mcpServerEntryJSON: server, mcpServer: info }
 	}
 
-	private _addUniquePrefix(base: string) {
-		return `${Math.random().toString(36).slice(2, 8)}_${base}`;
+	private _addUniquePrefix(base: string, serverName: string) {
+		const safeServerName = serverName.replace(/[^a-zA-Z0-9_-]/g, '_');
+		return `${safeServerName}__${base}`;
 	}
 
 	private async _createClient(serverConfig: MCPConfigFileEntryJSON, serverName: string, isOn = true): Promise<ClientInfo> {

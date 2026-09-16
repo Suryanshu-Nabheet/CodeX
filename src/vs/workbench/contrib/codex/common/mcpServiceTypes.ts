@@ -238,5 +238,7 @@ export interface MCPToolCallParams {
 
 
 export const removeMCPToolNamePrefix = (name: string) => {
+	const stablePrefixIndex = name.indexOf('__');
+	if (stablePrefixIndex !== -1) return name.slice(stablePrefixIndex + 2)
 	return name.split('_').slice(1).join('_')
 }

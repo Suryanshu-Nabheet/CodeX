@@ -402,7 +402,14 @@ export class ToolsService implements IToolsService {
 				const contents = model.getValue(EndOfLinePreference.LF);
 				const contentOfLine = contents.split('\n');
 				const totalLines = contentOfLine.length;
-				const regex = isRegex ? new RegExp(query) : null;
+					let regex: RegExp | null = null;
+					if (isRegex) {
+						try {
+							regex = new RegExp(query);
+						} catch (error) {
+							throw new Error(`Invalid regular expression: ${error instanceof Error ? error.message : String(error)}`);
+						}
+					}
 				const lines: number[] = []
 				for (let i = 0; i < totalLines; i++) {
 					const line = contentOfLine[i];

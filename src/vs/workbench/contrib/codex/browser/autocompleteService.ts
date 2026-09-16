@@ -22,6 +22,7 @@ import { ICodexSettingsService } from '../common/codexSettingsService.js';
 import { FeatureName } from '../common/codexSettingsTypes.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
 import { IContextGatheringService } from './contextGatheringService.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
 
 
 
@@ -644,10 +645,11 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 	async _provideInlineCompletionItems(
 		model: ITextModel,
 		position: Position,
+		token: CancellationToken,
 	): Promise<InlineCompletion[]> {
 
 		const isEnabled = this._settingsService.state.globalSettings.enableAutocomplete
-		if (!isEnabled) return []
+		if (!isEnabled || token.isCancellationRequested) return []
 
 		const testMode = false
 
@@ -739,6 +741,7 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 				}
 			}, DEBOUNCE_TIME)
 		)
+		if (token.isCancellationRequested) return []
 
 		// if more typing happened, then do not go forwards with the request
 		if (didTypingHappenDuringDebounce) {
@@ -807,6 +810,12 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 
 		// set parameters of `newAutocompletion` appropriately
 		newAutocompletion.llmPromise = new Promise((resolve, reject) => {
+			let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+			let cancellationListener: { dispose(): void } | undefined;
+			const cleanup = () => {
+				if (timeoutHandle) clearTimeout(timeoutHandle);
+				cancellationListener?.dispose();
+			};
 
 			const requestId = this._llmMessageService.sendLLMMessage({
 				messagesType: 'FIMMessage',
@@ -825,6 +834,7 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 					newAutocompletion.insertText = fullText;
 				},
 				onFinalMessage: ({ fullText }) => {
+					cleanup();
 					newAutocompletion.endTime = Date.now()
 					newAutocompletion.status = 'finished'
 					const [text, _] = extractCodeFromRegular({ text: fullText, recentlyAddedTextLen: 0 })
@@ -838,17 +848,25 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 					resolve(newAutocompletion.insertText)
 				},
 				onError: ({ message }) => {
+					cleanup();
 					newAutocompletion.endTime = Date.now()
 					newAutocompletion.status = 'error'
 					reject(message)
 				},
-				onAbort: () => { reject('Aborted autocomplete') },
+				onAbort: () => { cleanup(); newAutocompletion.endTime = Date.now(); newAutocompletion.status = 'error'; reject('Aborted autocomplete') },
 			})
 			newAutocompletion.requestId = requestId
+			cancellationListener = token.onCancellationRequested(() => {
+				if (newAutocompletion.requestId) this._llmMessageService.abort(newAutocompletion.requestId);
+			});
 
 			// if the request hasnt resolved in TIMEOUT_TIME seconds, reject it
-			setTimeout(() => {
+			 timeoutHandle = setTimeout(() => {
 				if (newAutocompletion.status === 'pending') {
+					cleanup();
+					newAutocompletion.status = 'error';
+					newAutocompletion.endTime = Date.now();
+					if (newAutocompletion.requestId) this._llmMessageService.abort(newAutocompletion.requestId);
 					reject('Timeout receiving message to LLM.')
 				}
 			}, TIMEOUT_TIME)
@@ -891,7 +909,7 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 
 		this._register(this._langFeatureService.inlineCompletionsProvider.register('*', {
 			provideInlineCompletions: async (model, position, context, token) => {
-				const items = await this._provideInlineCompletionItems(model, position)
+				const items = await this._provideInlineCompletionItems(model, position, token)
 
 				// console.log('item: ', items?.[0]?.insertText)
 				return { items: items, }
@@ -940,5 +958,3 @@ export class AutocompleteService extends Disposable implements IAutocompleteServ
 }
 
 registerWorkbenchContribution2(AutocompleteService.ID, AutocompleteService, WorkbenchPhase.BlockRestore);
-
-

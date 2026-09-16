@@ -288,7 +288,7 @@ class MCPService extends Disposable implements IMCPService {
 		}
 		const updatedServerNames = Object.keys(newConfigFileJSON.mcpServers).filter(serverName => !addedServerNames.includes(serverName) && !removedServerNames.includes(serverName))
 
-		this.channel.call('refreshMCPServers', {
+		await this.channel.call('refreshMCPServers', {
 			mcpConfigFileJSON: newConfigFileJSON,
 			addedServerNames,
 			removedServerNames,
@@ -318,12 +318,13 @@ class MCPService extends Disposable implements IMCPService {
 		this._setMCPServerState(serverName, { status: 'loading', tools: [] })
 
 		await this.codexSettingsService.setMCPServerState(serverName, { isOn });
-		this.channel.call('toggleMCPServer', { serverName, isOn })
+		await this.channel.call('toggleMCPServer', { serverName, isOn })
 	}
 
 
 	public async callMCPTool(toolData: MCPToolCallParams): Promise<{ result: RawMCPToolCall }> {
 		const result = await this.channel.call<RawMCPToolCall>('callTool', toolData);
+		if (!result) throw new Error(`MCP tool ${toolData.toolName} did not return a response.`)
 		if (result.event === 'error') {
 			throw new Error(`Error: ${result.text}`)
 		}
