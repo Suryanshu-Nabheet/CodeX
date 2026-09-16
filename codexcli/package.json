@@ -19,7 +19,7 @@
     "format": "prettier --check src",
     "format:fix": "prettier --write src",
     "dev": "tsc --watch",
-    "lint": "eslint src --ext ts --ext tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src --ext ts --ext tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext ts --ext tsx --fix",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest --watch",

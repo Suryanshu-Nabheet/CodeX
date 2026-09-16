@@ -200,8 +200,8 @@ export class MCPChannel implements IServerChannel {
 				command: server.command,
 				args: server.args,
 				env: {
-					...server.env,
-					...process.env
+					...process.env,
+					...server.env
 				} as Record<string, string>,
 			});
 
@@ -270,6 +270,7 @@ export class MCPChannel implements IServerChannel {
 		if (isOn) {
 			// this.mcpEmitters.serverEvent.onChangeLoading.fire(getLoadingServerObject(serverName, isOn))
 			const clientInfo = await this._createClientUnsafe(this.infoOfClientId[serverName].mcpServerEntryJSON, serverName, isOn)
+			this.infoOfClientId[serverName] = clientInfo
 			this.mcpEmitters.serverEvent.onUpdate.fire({
 				response: {
 					name: serverName,
@@ -281,8 +282,9 @@ export class MCPChannel implements IServerChannel {
 		// Handle turning off the server
 		else {
 			// this.mcpEmitters.serverEvent.onChangeLoading.fire(getLoadingServerObject(serverName, isOn))
-			this._closeClient(serverName)
-			delete this.infoOfClientId[serverName]._client
+			await this._closeClient(serverName)
+			const current = this.infoOfClientId[serverName]
+			if (current) delete current._client
 
 			this.mcpEmitters.serverEvent.onUpdate.fire({
 				response: {
@@ -391,5 +393,3 @@ export class MCPChannel implements IServerChannel {
 		}
 	}
 }
-
-

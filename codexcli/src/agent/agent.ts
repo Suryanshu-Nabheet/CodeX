@@ -1,4 +1,4 @@
-import type { Provider, Message } from "../providers/base.js";
+import type { Provider, Message, ProviderTool } from "../providers/base.js";
 
 import { ToolRegistry } from "./tools.js";
 
@@ -37,7 +37,15 @@ export class Agent {
     this.history.push({ role: "user", content: userInput });
 
     while (true) {
-      const response = await this.provider.sendMessage(this.history);
+      const tools: Array<ProviderTool> = this.tools.getAllTools().map((tool) => ({
+        type: "function",
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        },
+      }));
+      const response = await this.provider.sendMessage(this.history, tools);
 
       if (response.text) {
         if (this.onMessage) {this.onMessage(response.text);}

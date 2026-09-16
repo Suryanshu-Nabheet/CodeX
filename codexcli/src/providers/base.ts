@@ -9,6 +9,15 @@ export interface ProviderResponse {
   finishReason?: string;
 }
 
+export interface ProviderTool {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+  };
+}
+
 export interface ToolCall {
   id: string;
   name: string;
@@ -22,9 +31,13 @@ export interface Message {
 }
 
 export interface Provider {
-  sendMessage(messages: Array<Message>): Promise<ProviderResponse>;
+  sendMessage(
+    messages: Array<Message>,
+    tools?: Array<ProviderTool>,
+  ): Promise<ProviderResponse>;
   streamMessage(
     messages: Array<Message>,
     onChunk: (chunk: string) => void,
+    tools?: Array<ProviderTool>,
   ): Promise<ProviderResponse>;
 }

@@ -36,7 +36,7 @@ export class FilesystemController {
   async deleteFile(filePath: string): Promise<void> {
     const absolutePath = this.root.resolve(filePath);
     try {
-      await fs.unlink(absolutePath);
+      await fs.rm(absolutePath, { recursive: true, force: false });
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -141,7 +141,12 @@ export class FilesystemController {
 
   async searchFiles(pattern: string, dirPath: string = "."): Promise<Array<string>> {
     const allFiles = await this.listFilesRecursive(dirPath);
-    const regex = new RegExp(pattern.replace(/\*/g, ".*"), "i");
+    let regex: RegExp;
+    try {
+      regex = new RegExp(pattern.replace(/\*/g, ".*"), "i");
+    } catch (error) {
+      throw new Error(`Invalid search pattern: ${String(error)}`);
+    }
     return allFiles.filter((file) => regex.test(file));
   }
 
@@ -151,7 +156,12 @@ export class FilesystemController {
   ): Promise<Array<{ path: string; line: number; content: string }>> {
     const allFiles = await this.listFilesRecursive(dirPath);
     const results: Array<{ path: string; line: number; content: string }> = [];
-    const regex = new RegExp(pattern, "i");
+    let regex: RegExp;
+    try {
+      regex = new RegExp(pattern, "i");
+    } catch (error) {
+      throw new Error(`Invalid search pattern: ${String(error)}`);
+    }
 
     for (const file of allFiles) {
       try {

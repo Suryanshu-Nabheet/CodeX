@@ -18,11 +18,9 @@ import fs from "fs/promises";
 // ---------------------------------------------------------------------------
 // Session‑level cache of commands that the user has chosen to always approve.
 //
-// The values are derived via `deriveCommandKey()` which intentionally ignores
-// volatile arguments (for example the patch text passed to `apply_patch`).
-// Storing *generalised* keys means that once a user selects "always approve"
-// for a given class of command we will genuinely stop prompting them for
-// subsequent, equivalent invocations during the same CLI session.
+// The values are derived via `deriveCommandKey()` from the complete argv
+// sequence. This deliberately avoids granting approval to unrelated commands
+// that happen to use the same executable.
 // ---------------------------------------------------------------------------
 const alwaysApprovedCommands = new Set<string>();
 
@@ -37,32 +35,8 @@ const alwaysApprovedCommands = new Set<string>();
 // ---------------------------------------------------------------------------
 
 function deriveCommandKey(cmd: Array<string>): string {
-  // pull off only the bits you care about
-  const [
-    maybeShell,
-    maybeFlag,
-    coreInvocation,
-    /* …ignore the rest… */
-  ] = cmd;
-
-  if (coreInvocation?.startsWith("apply_patch")) {
-    return "apply_patch";
-  }
-
-  if (maybeShell === "bash" && maybeFlag === "-lc") {
-    // If the command was invoked through `bash -lc "<script>"` we extract the
-    // base program name from the script string.
-    const script = coreInvocation ?? "";
-    return script.split(/\s+/)[0] || "bash";
-  }
-
-  // For every other command we fall back to using only the program name (the
-  // first argv element).  This guarantees we always return a *string* even if
-  // `coreInvocation` is undefined.
-  if (coreInvocation) {
-    return coreInvocation.split(/\s+/)[0]!;
-  }
-
+  // Always approve must apply only to the exact argv sequence. Broad keys such
+  // as the executable name could bless unrelated destructive commands.
   return JSON.stringify(cmd);
 }
 

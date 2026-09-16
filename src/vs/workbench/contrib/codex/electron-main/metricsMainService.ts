@@ -148,9 +148,11 @@ export class MetricsMainService extends Disposable implements IMetricsService {
 	setOptOut: IMetricsService['setOptOut'] = (newVal: boolean) => {
 		if (newVal) {
 			this._appStorage.store(OPT_OUT_KEY, 'true', StorageScope.APPLICATION, StorageTarget.MACHINE)
+			this.client.optOut()
 		}
 		else {
 			this._appStorage.remove(OPT_OUT_KEY, StorageScope.APPLICATION)
+			this.client.optIn()
 		}
 	}
 
@@ -158,5 +160,4 @@ export class MetricsMainService extends Disposable implements IMetricsService {
 		return this._initProperties
 	}
 }
-
 

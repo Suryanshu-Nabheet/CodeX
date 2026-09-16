@@ -1,4 +1,4 @@
-import type { Message, Provider, ProviderResponse } from "./base.js";
+import type { Message, Provider, ProviderResponse, ProviderTool } from "./base.js";
 
 import OpenAI from "openai";
 
@@ -14,7 +14,7 @@ export class StandardLLMProvider implements Provider {
     this.model = model;
   }
 
-  async sendMessage(messages: Array<Message>): Promise<ProviderResponse> {
+  async sendMessage(messages: Array<Message>, tools?: Array<ProviderTool>): Promise<ProviderResponse> {
     const response = await this.client.chat.completions.create({
       model: this.model,
       messages: messages.map((m) => ({
@@ -22,6 +22,7 @@ export class StandardLLMProvider implements Provider {
         content: m.content,
         tool_call_id: m.toolCallId,
       })),
+      tools,
     });
 
     const choice = response.choices[0];
@@ -30,11 +31,17 @@ export class StandardLLMProvider implements Provider {
     }
     return {
       text: choice.message.content || "",
-      toolCalls: choice.message.tool_calls?.map((tc) => ({
-        id: tc.id,
-        name: tc.function.name,
-        arguments: JSON.parse(tc.function.arguments),
-      })),
+      toolCalls: choice.message.tool_calls?.flatMap((tc) => {
+        try {
+          return [{
+            id: tc.id,
+            name: tc.function.name,
+            arguments: JSON.parse(tc.function.arguments),
+          }];
+        } catch {
+          return [];
+        }
+      }),
       usage: {
         promptTokens: response.usage?.prompt_tokens || 0,
         completionTokens: response.usage?.completion_tokens || 0,
@@ -46,6 +53,7 @@ export class StandardLLMProvider implements Provider {
   async streamMessage(
     messages: Array<Message>,
     onChunk: (chunk: string) => void,
+    tools?: Array<ProviderTool>,
   ): Promise<ProviderResponse> {
     const stream = await this.client.chat.completions.create({
       model: this.model,
@@ -55,6 +63,7 @@ export class StandardLLMProvider implements Provider {
         tool_call_id: m.toolCallId,
       })),
       stream: true,
+      tools,
     });
 
     let fullText = "";

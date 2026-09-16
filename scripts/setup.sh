@@ -58,11 +58,10 @@ echo "2. Building React components..."
 echo "3. Compiling codebase..."
 npm run compile
 
-# 4. Launch the application (backgrounded so the script can proceed to watch)
-echo "4. Launching application..."
-("$ROOT_DIR/scripts/code.sh" &)
-
-# 5. Start watch mode for real-time development
-echo "5. Starting watch mode for real-time testing..."
-sleep 2
-npm run watch
+# 4. Finish setup without launching or starting a long-running watcher.
+#
+# Launching is intentionally separate: use ./scripts/code.sh after this
+# command completes. This makes setup safe for CI, containers, and unattended
+# development-machine provisioning.
+echo "4. Setup complete. The IDE was not launched."
+echo "   Launch it with: ./scripts/code.sh"
