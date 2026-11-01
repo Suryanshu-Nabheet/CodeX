@@ -15,14 +15,14 @@
 
 **Developed by [Suryanshu Nabheet](mailto:suryanshunab@gmail.com)**
 
-CodeX is a next-generation development ecosystem built on a custom-hardened VS Code foundation. Rather than layering AI capabilities through a narrow extension API, CodeX re-engineers the workbench core to deliver **Native AI Orchestration** — treating intelligence as a primary platform service, not an afterthought.
+CodeX is a development environment built on a custom-hardened VS Code foundation. Rather than layering AI capabilities through a narrow extension API, CodeX re-engineers the workbench core to deliver **Native AI Orchestration** — treating inference as a first-class platform service, not an afterthought.
 
 The ecosystem ships as **two integrated products**:
 
 | Product | What it is |
 |---------|-----------|
-| **CodeX IDE** | AI-native engineering environment with a deep workbench integration — full agentic sidebar, inline diffs, autocomplete, MCP, SCM, and more. |
-| **CodexCLI** | Autonomous terminal coding agent that edits real files, runs real commands, and streams responses live — all from the shell. |
+| **CodeX IDE** | AI-native engineering environment with a deep workbench integration — full agent sidebar, inline diffs, autocomplete, MCP, SCM, and more. |
+| **CodexCLI** | Terminal coding agent that edits real files, runs real commands, and streams responses live — all from the shell. |
 
 ---
 
@@ -31,17 +31,17 @@ The ecosystem ships as **two integrated products**:
 ### CodeX IDE
 
 <p align="center">
-  <img src="assets/screenshots/ide.png" width="100%" alt="CodeX IDE — Agentic Sidebar, Explorer, and Monaco Editor" />
+  <img src="assets/screenshots/ide.png" width="100%" alt="CodeX IDE — Agent Sidebar, Explorer, and Monaco Editor" />
 </p>
 
-*The CodeX IDE showing the agentic chat sidebar, project file explorer with the integrated CodexCLI directory, and Monaco editor — running in full AI orchestration mode.*
+*The CodeX IDE showing the agent chat sidebar, project file explorer with the integrated CodexCLI directory, and Monaco editor — running in full AI orchestration mode.*
 
 ---
 
 ### CodexCLI
 
 <p align="center">
-  <img src="assets/screenshots/cli.png" width="100%" alt="CodexCLI — Autonomous Terminal AI Coding Agent" />
+  <img src="assets/screenshots/cli.png" width="100%" alt="CodexCLI — Terminal AI Coding Agent" />
 </p>
 
 *CodexCLI in interactive TUI mode — showing the live model session header (model, directory, approval policy) and streaming response.*
@@ -62,14 +62,14 @@ Underpinning every interaction is the **Unified Context Engine**: a project-wide
 
 ### CodeX IDE
 
-#### Autonomous AI Sidebar (`Ctrl+L`)
+#### AI Sidebar (`Ctrl+L`)
 
 A React-powered command interface that resides in the editor's auxiliary bar.
 
 - **Multimodal Input**: Accepts text, images, and direct codebase references (`@file`, `@folder`, `@commit`, `@branch`, `@terminal`) within a single interaction.
-- **Agentic Workflow Execution**: Orchestrates complex, multi-file operations autonomously — refactoring across a module, updating all usages of an interface, or restructuring a directory — without requiring step-by-step supervision.
+- **Multi-Step Workflow Execution**: Orchestrates complex, multi-file operations — refactoring across a module, updating all usages of an interface, or restructuring a directory — without requiring step-by-step supervision.
 - **Real-Time Reasoning Visualization**: A purpose-built `ThoughtBlock` component surfaces the model's intermediate reasoning steps as they are produced.
-- **Checkpoint & Restore**: Automatic file snapshots before every agentic action allow instant rollback to any prior state.
+- **Checkpoint & Restore**: Automatic file snapshots before every agent action allow instant rollback to any prior state.
 
 #### Inline Code Transformation (`Cmd+K`)
 
@@ -100,7 +100,7 @@ First-class support for the MCP standard, implemented at the platform layer rath
 
 ### CodexCLI
 
-CodexCLI is a production-grade autonomous terminal coding agent. It edits real files, runs real commands, and streams responses live. Every tool call hits the actual workspace — this is not a chat demo.
+CodexCLI is a production-grade terminal coding agent. It edits real files, runs real commands, and streams responses live. Every tool call hits the actual workspace — this is not a chat demo.
 
 #### Key Capabilities
 
@@ -111,7 +111,7 @@ CodexCLI is a production-grade autonomous terminal coding agent. It edits real f
 - Supports **skills** (custom slash prompts), `/plan`, `/init`, `/doctor`, `/cost`, todos, explore, and `web_fetch`
 - **Multi-provider**: OpenAI-compatible, Anthropic, Gemini, OpenRouter, Ollama, and more
 
-#### Autonomy & Approval Modes
+#### Approval Modes
 
 | Mode | Flag | Behaviour |
 |------|------|-----------|
@@ -199,7 +199,7 @@ codex/
 │       ├── browser/                    # IDE: services, React app, ViewZone engine
 │       │   ├── react/src/              # Sidebar, QuickEdit, Settings (React 19 + Tailwind)
 │       │   ├── editCodeService.ts      # Diff engine, ViewZones, AI undo stack
-│       │   ├── chatThreadService.ts    # Agentic chat state machine + checkpoints
+│       │   ├── chatThreadService.ts    # Agent chat state machine + checkpoints
 │       │   ├── autocompleteService.ts  # FIM engine with LRU cache
 │       │   ├── contextGatheringService.ts
 │       │   ├── toolsService.ts         # Built-in tool executor
@@ -217,7 +217,7 @@ codex/
 │           ├── mcpChannel.ts               # MCP stdio/SSE subprocess manager
 │           └── sendLLMMessageChannel.ts
 │
-├── codexcli/                           # Autonomous terminal coding agent
+├── codexcli/                           # Terminal coding agent
 │   ├── src/
 │   │   ├── agent/      # AgentLoop, tools, skills, explore, usage
 │   │   ├── config/     # ~/.codex config + env loader
@@ -395,6 +395,6 @@ Contributions from the community are welcome. Please review the [Contributing Gu
 
 ## License
 
-CodeX is governed by the **CodeX Open Source Initiative**.
+MIT — see [LICENSE.md](LICENSE.md).
 
-Technical Lead: [Suryanshu Nabheet](mailto:suryanshunab@gmail.com)
+Developed and maintained by [Suryanshu Nabheet](mailto:suryanshunab@gmail.com).

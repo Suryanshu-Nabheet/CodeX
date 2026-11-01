@@ -10,7 +10,7 @@ type Props = {
 };
 
 /**
- * Overlay to switch between the different automatic‑approval policies.
+ * Overlay to switch between the different approval policies.
  *
  * The list of available modes is derived from the AutoApprovalMode enum so we
  * stay in sync with the core agent behaviour.  It re‑uses the generic

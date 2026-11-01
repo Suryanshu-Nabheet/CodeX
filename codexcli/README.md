@@ -1,6 +1,6 @@
 # CodexCLI
 
-**Autonomous terminal coding agent** — part of the [CodeX](https://github.com/Suryanshu-Nabheet/CodeX) monorepo.
+**Terminal coding agent** — part of the [CodeX](https://github.com/Suryanshu-Nabheet/CodeX) monorepo.
 
 CodexCLI is a production-grade AI coding agent that runs in your terminal. It edits real files, runs real commands, streams responses live, and works with multiple LLM providers — including local models.
 
@@ -106,7 +106,7 @@ codexcli --config
 
 ---
 
-## Autonomy & approval
+## Approval modes
 
 | Mode | Flag | Behavior |
 | --- | --- | --- |
@@ -226,4 +226,4 @@ MIT — see [LICENSE](LICENSE).
 - Issues: [github.com/Suryanshu-Nabheet/CodeX/issues](https://github.com/Suryanshu-Nabheet/CodeX/issues)
 - Discussions: [github.com/Suryanshu-Nabheet/CodeX/discussions](https://github.com/Suryanshu-Nabheet/CodeX/discussions)
 
-**CodexCLI** — real files, real commands, autonomous delivery.
+**CodexCLI** — real files, real commands, end-to-end delivery.
